@@ -35,6 +35,21 @@
     --ring: 152 228 214;
 
     --radius: 1rem;
+
+    /* Kawaii Colors */
+    --kawaii-pink: 255 182 193;
+    --kawaii-mint: 152 228 214;
+    --kawaii-sky: 173 216 230;
+    --kawaii-yellow: 255 255 224;
+    --kawaii-lavender: 230 230 250;
+    --kawaii-peach: 255 218 185;
+
+    /* Grammar Block Colors */
+    --grammar-subject: 255 182 193;
+    --grammar-particle: 152 228 214;
+    --grammar-verb: 173 216 230;
+    --grammar-adjective: 255 255 224;
+    --grammar-object: 230 230 250;
   }
 
   * {
@@ -55,5 +70,50 @@
   
   .grammar-block {
     @apply rounded-2xl p-4 shadow-md border-2 border-white/50 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  }
+
+  /* Kawaii Color Classes */
+  .bg-kawaii-pink { background-color: rgb(var(--kawaii-pink)); }
+  .bg-kawaii-mint { background-color: rgb(var(--kawaii-mint)); }
+  .bg-kawaii-sky { background-color: rgb(var(--kawaii-sky)); }
+  .bg-kawaii-yellow { background-color: rgb(var(--kawaii-yellow)); }
+  .bg-kawaii-lavender { background-color: rgb(var(--kawaii-lavender)); }
+  .bg-kawaii-peach { background-color: rgb(var(--kawaii-peach)); }
+
+  .text-kawaii-pink { color: rgb(var(--kawaii-pink)); }
+  .text-kawaii-mint { color: rgb(var(--kawaii-mint)); }
+  .text-kawaii-sky { color: rgb(var(--kawaii-sky)); }
+  .text-kawaii-yellow { color: rgb(var(--kawaii-yellow)); }
+  .text-kawaii-lavender { color: rgb(var(--kawaii-lavender)); }
+  .text-kawaii-peach { color: rgb(var(--kawaii-peach)); }
+
+  .border-kawaii-pink { border-color: rgb(var(--kawaii-pink)); }
+  .border-kawaii-mint { border-color: rgb(var(--kawaii-mint)); }
+  .border-kawaii-sky { border-color: rgb(var(--kawaii-sky)); }
+  .border-kawaii-yellow { border-color: rgb(var(--kawaii-yellow)); }
+  .border-kawaii-lavender { border-color: rgb(var(--kawaii-lavender)); }
+  .border-kawaii-peach { border-color: rgb(var(--kawaii-peach)); }
+
+  /* Grammar Block Colors */
+  .bg-grammar-subject { background-color: rgb(var(--grammar-subject)); }
+  .bg-grammar-particle { background-color: rgb(var(--grammar-particle)); }
+  .bg-grammar-verb { background-color: rgb(var(--grammar-verb)); }
+  .bg-grammar-adjective { background-color: rgb(var(--grammar-adjective)); }
+  .bg-grammar-object { background-color: rgb(var(--grammar-object)); }
+
+  .border-grammar-subject { border-color: rgb(var(--grammar-subject)); }
+  .border-grammar-particle { border-color: rgb(var(--grammar-particle)); }
+  .border-grammar-verb { border-color: rgb(var(--grammar-verb)); }
+  .border-grammar-adjective { border-color: rgb(var(--grammar-adjective)); }
+  .border-grammar-object { border-color: rgb(var(--grammar-object)); }
+
+  /* Animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
   }
 }

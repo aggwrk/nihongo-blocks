@@ -4,12 +4,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Star, BookOpen, Play } from 'lucide-react';
-import GrammarLesson from '@/components/GrammarLesson';
+import { ArrowRight, Star, BookOpen, Play, Book } from 'lucide-react';
+import ExpandedGrammarLesson from '@/components/ExpandedGrammarLesson';
 import ProgressTree from '@/components/ProgressTree';
-import QuizMode from '@/components/QuizMode';
+import ExpandedQuizMode from '@/components/ExpandedQuizMode';
+import VocabularyMode from '@/components/VocabularyMode';
 
-type AppMode = 'home' | 'lesson' | 'quiz' | 'progress';
+type AppMode = 'home' | 'lesson' | 'quiz' | 'progress' | 'vocabulary';
 
 const Index = () => {
   const [currentMode, setCurrentMode] = useState<AppMode>('home');
@@ -23,9 +24,11 @@ const Index = () => {
   const renderContent = () => {
     switch (currentMode) {
       case 'lesson':
-        return <GrammarLesson onComplete={() => setCurrentMode('home')} />;
+        return <ExpandedGrammarLesson onComplete={() => setCurrentMode('home')} />;
       case 'quiz':
-        return <QuizMode onComplete={() => setCurrentMode('home')} />;
+        return <ExpandedQuizMode onComplete={() => setCurrentMode('home')} />;
+      case 'vocabulary':
+        return <VocabularyMode onComplete={() => setCurrentMode('home')} />;
       case 'progress':
         return <ProgressTree progress={userProgress} onBack={() => setCurrentMode('home')} />;
       default:
@@ -71,36 +74,47 @@ const Index = () => {
                 <ArrowRight className="w-5 h-5 ml-3" />
               </Button>
 
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-16 border-2 border-kawaii-pink bg-kawaii-pink/20 hover:bg-kawaii-pink/30 text-gray-800 font-semibold"
-                onClick={() => setCurrentMode('quiz')}
-              >
-                <Play className="w-5 h-5 mr-3" />
-                Quick Quiz
-                <ArrowRight className="w-5 h-5 ml-3" />
-              </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-16 border-2 border-kawaii-pink bg-kawaii-pink/20 hover:bg-kawaii-pink/30 text-gray-800 font-semibold"
+                  onClick={() => setCurrentMode('quiz')}
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Quiz
+                </Button>
+
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-16 border-2 border-kawaii-lavender bg-kawaii-lavender/20 hover:bg-kawaii-lavender/30 text-gray-800 font-semibold"
+                  onClick={() => setCurrentMode('vocabulary')}
+                >
+                  <Book className="w-5 h-5 mr-2" />
+                  Vocabulary
+                </Button>
+              </div>
             </div>
 
             {/* Today's Lesson Preview */}
             <Card className="glass-card p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <span className="text-2xl mr-2">📚</span>
-                Today's Focus: Particles (は vs が)
+                Today's Focus: Particles & Adjectives
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-kawaii-yellow/30 rounded-lg">
-                  <span className="text-sm font-medium">Grammar Point</span>
-                  <span className="text-sm">Topic vs Subject Markers</span>
+                  <span className="text-sm font-medium">Grammar Points</span>
+                  <span className="text-sm">は, が, を, で particles</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-kawaii-lavender/30 rounded-lg">
                   <span className="text-sm font-medium">New Vocabulary</span>
-                  <span className="text-sm">5 words</span>
+                  <span className="text-sm">8 essential words</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-kawaii-peach/30 rounded-lg">
                   <span className="text-sm font-medium">Practice Exercises</span>
-                  <span className="text-sm">8 questions</span>
+                  <span className="text-sm">5 interactive quizzes</span>
                 </div>
               </div>
             </Card>
