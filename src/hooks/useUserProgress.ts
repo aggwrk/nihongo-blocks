@@ -15,13 +15,16 @@ interface UserProfile {
 export const useUserProgress = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchCompletedLessons();
     } else {
       setProfile(null);
+      setCompletedLessons([]);
       setLoading(false);
     }
   }, [user]);
@@ -48,6 +51,25 @@ export const useUserProgress = () => {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCompletedLessons = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching completed lessons:', error);
+      } else {
+        setCompletedLessons(data?.map(item => item.lesson_id) || []);
+      }
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
@@ -104,5 +126,34 @@ export const useUserProgress = () => {
     }
   };
 
-  return { profile, loading, updateXP, fetchProfile };
+  const markLessonComplete = async (lessonId: string, score?: number) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_lesson_progress')
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          score,
+        });
+
+      if (error) {
+        console.error('Error marking lesson complete:', error);
+      } else {
+        setCompletedLessons(prev => [...new Set([...prev, lessonId])]);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  return { 
+    profile, 
+    completedLessons, 
+    loading, 
+    updateXP, 
+    fetchProfile, 
+    markLessonComplete 
+  };
 };

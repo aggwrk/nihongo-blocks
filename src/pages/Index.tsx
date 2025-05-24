@@ -18,7 +18,7 @@ type AppMode = 'home' | 'lesson' | 'quiz' | 'progress' | 'vocabulary';
 const Index = () => {
   const [currentMode, setCurrentMode] = useState<AppMode>('home');
   const { user, signOut, loading } = useAuth();
-  const { profile, loading: profileLoading } = useUserProgress();
+  const { profile, completedLessons, loading: profileLoading } = useUserProgress();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,7 +56,7 @@ const Index = () => {
       case 'vocabulary':
         return <VocabularyMode onComplete={() => setCurrentMode('home')} />;
       case 'progress':
-        return <ProgressTree progress={profile} onBack={() => setCurrentMode('home')} />;
+        return <ProgressTree progress={profile} completedLessons={completedLessons} onBack={() => setCurrentMode('home')} />;
       default:
         return (
           <div className="space-y-8">

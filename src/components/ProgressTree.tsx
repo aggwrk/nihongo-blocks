@@ -4,17 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Lock, CheckCircle, Play } from 'lucide-react';
 
+interface UserProfile {
+  id: string;
+  username: string | null;
+  current_level: number;
+  total_xp: number;
+  streak_days: number;
+  last_activity_date: string;
+}
+
 interface ProgressTreeProps {
-  progress: {
-    level: number;
-    xp: number;
-    streak: number;
-    completedLessons: string[];
-  };
+  progress: UserProfile;
+  completedLessons: string[];
   onBack: () => void;
 }
 
-const ProgressTree = ({ progress, onBack }: ProgressTreeProps) => {
+const ProgressTree = ({ progress, completedLessons, onBack }: ProgressTreeProps) => {
   const lessons = [
     {
       id: 'particles-intro',
@@ -75,12 +80,12 @@ const ProgressTree = ({ progress, onBack }: ProgressTreeProps) => {
   const isLessonUnlocked = (lesson: any) => {
     if (lesson.prerequisites.length === 0) return true;
     return lesson.prerequisites.every((prereq: string) => 
-      progress.completedLessons.includes(prereq)
+      completedLessons.includes(prereq)
     );
   };
 
   const isLessonCompleted = (lessonId: string) => {
-    return progress.completedLessons.includes(lessonId);
+    return completedLessons.includes(lessonId);
   };
 
   const getLessonStatus = (lesson: any) => {
@@ -99,7 +104,7 @@ const ProgressTree = ({ progress, onBack }: ProgressTreeProps) => {
         </Button>
         <div className="text-center">
           <h2 className="text-lg font-semibold">Progress Tree</h2>
-          <p className="text-sm text-gray-600">Level {progress.level} • {progress.xp} XP</p>
+          <p className="text-sm text-gray-600">Level {progress.current_level} • {progress.total_xp} XP</p>
         </div>
         <div className="w-16" />
       </div>
@@ -108,15 +113,15 @@ const ProgressTree = ({ progress, onBack }: ProgressTreeProps) => {
       <Card className="glass-card p-4">
         <div className="flex justify-between items-center">
           <div className="text-center">
-            <div className="text-2xl font-bold text-kawaii-mint">{progress.completedLessons.length}</div>
+            <div className="text-2xl font-bold text-kawaii-mint">{completedLessons.length}</div>
             <div className="text-xs text-gray-600">Completed</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-kawaii-pink">{progress.streak}</div>
+            <div className="text-2xl font-bold text-kawaii-pink">{progress.streak_days}</div>
             <div className="text-xs text-gray-600">Day Streak</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-kawaii-yellow">{lessons.length - progress.completedLessons.length}</div>
+            <div className="text-2xl font-bold text-kawaii-yellow">{lessons.length - completedLessons.length}</div>
             <div className="text-xs text-gray-600">Remaining</div>
           </div>
         </div>
