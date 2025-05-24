@@ -1,10 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Star, BookOpen, Play, Book } from 'lucide-react';
+import { ArrowRight, Star, BookOpen, Play, Book, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProgress } from '@/hooks/useUserProgress';
 import ExpandedGrammarLesson from '@/components/ExpandedGrammarLesson';
 import ProgressTree from '@/components/ProgressTree';
 import ExpandedQuizMode from '@/components/ExpandedQuizMode';
@@ -14,12 +17,35 @@ type AppMode = 'home' | 'lesson' | 'quiz' | 'progress' | 'vocabulary';
 
 const Index = () => {
   const [currentMode, setCurrentMode] = useState<AppMode>('home');
-  const [userProgress, setUserProgress] = useState({
-    level: 1,
-    xp: 150,
-    streak: 3,
-    completedLessons: ['particles-intro', 'basic-structure']
-  });
+  const { user, signOut, loading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProgress();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading || profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-6xl animate-float">🌸</div>
+          <p className="text-lg text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return null;
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   const renderContent = () => {
     switch (currentMode) {
@@ -30,10 +56,26 @@ const Index = () => {
       case 'vocabulary':
         return <VocabularyMode onComplete={() => setCurrentMode('home')} />;
       case 'progress':
-        return <ProgressTree progress={userProgress} onBack={() => setCurrentMode('home')} />;
+        return <ProgressTree progress={profile} onBack={() => setCurrentMode('home')} />;
       default:
         return (
           <div className="space-y-8">
+            {/* User Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-kawaii-mint rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-800" />
+                </div>
+                <div>
+                  <h2 className="font-semibold text-gray-800">{profile.username || 'Student'}</h2>
+                  <p className="text-sm text-gray-600">Level {profile.current_level}</p>
+                </div>
+              </div>
+              <Button variant="ghost" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+
             {/* Welcome Header */}
             <div className="text-center space-y-4">
               <div className="text-6xl animate-float">🌸</div>
@@ -45,21 +87,21 @@ const Index = () => {
             <Card className="glass-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-semibold">Level {userProgress.level}</h3>
-                  <p className="text-sm text-gray-600">{userProgress.xp} XP</p>
+                  <h3 className="text-lg font-semibold">Level {profile.current_level}</h3>
+                  <p className="text-sm text-gray-600">{profile.total_xp} XP</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="secondary" className="bg-kawaii-yellow">
-                    🔥 {userProgress.streak} day streak
+                    🔥 {profile.streak_days} day streak
                   </Badge>
                   <Badge variant="outline">
                     <Star className="w-3 h-3 mr-1" />
-                    Beginner
+                    {profile.current_level < 5 ? 'Beginner' : profile.current_level < 10 ? 'Intermediate' : 'Advanced'}
                   </Badge>
                 </div>
               </div>
-              <Progress value={65} className="h-3" />
-              <p className="text-xs text-gray-500 mt-2">35 XP until Level 2</p>
+              <Progress value={(profile.total_xp % 200) / 2} className="h-3" />
+              <p className="text-xs text-gray-500 mt-2">{200 - (profile.total_xp % 200)} XP until Level {profile.current_level + 1}</p>
             </Card>
 
             {/* Quick Actions */}
@@ -101,20 +143,20 @@ const Index = () => {
             <Card className="glass-card p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <span className="text-2xl mr-2">📚</span>
-                Today's Focus: Particles & Adjectives
+                Today's Focus: Level {profile.current_level} Content
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-kawaii-yellow/30 rounded-lg">
                   <span className="text-sm font-medium">Grammar Points</span>
-                  <span className="text-sm">は, が, を, で particles</span>
+                  <span className="text-sm">Particles & Structure</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-kawaii-lavender/30 rounded-lg">
                   <span className="text-sm font-medium">New Vocabulary</span>
-                  <span className="text-sm">8 essential words</span>
+                  <span className="text-sm">{profile.current_level * 4} words</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-kawaii-peach/30 rounded-lg">
                   <span className="text-sm font-medium">Practice Exercises</span>
-                  <span className="text-sm">5 interactive quizzes</span>
+                  <span className="text-sm">Interactive quizzes</span>
                 </div>
               </div>
             </Card>

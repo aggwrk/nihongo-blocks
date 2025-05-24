@@ -4,27 +4,58 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, Volume2 } from 'lucide-react';
+import { useUserProgress } from '@/hooks/useUserProgress';
+import { expandedLessonData } from '@/data/expandedLessonData';
 import GrammarBlock from './GrammarBlock';
-import { lessonData } from '@/data/lessonData';
 
 interface ExpandedGrammarLessonProps {
   onComplete: () => void;
   lessonId?: string;
 }
 
-const ExpandedGrammarLesson = ({ onComplete, lessonId = 'particles-basics' }: ExpandedGrammarLessonProps) => {
+const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonProps) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const { profile, updateXP } = useUserProgress();
 
-  const lesson = lessonData[lessonId as keyof typeof lessonData];
+  // Determine lesson based on user level if not specified
+  const userLevel = profile?.current_level || 1;
+  let defaultLessonId = 'particles-intro';
+  
+  if (userLevel >= 2) {
+    defaultLessonId = 'particles-ga-wo';
+  }
+  if (userLevel >= 3) {
+    defaultLessonId = 'location-particles';
+  }
+
+  const actualLessonId = lessonId || defaultLessonId;
+  const lesson = expandedLessonData[actualLessonId as keyof typeof expandedLessonData];
+
+  if (!lesson) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        </div>
+        <Card className="glass-card p-6 text-center">
+          <p>Lesson not found</p>
+        </Card>
+      </div>
+    );
+  }
+
   const currentLesson = lesson.steps[currentStep];
   const progress = ((currentStep + 1) / lesson.steps.length) * 100;
 
-  const handleNext = () => {
-    setCompletedSteps(prev => new Set([...prev, currentStep]));
+  const handleNext = async () => {
     if (currentStep < lesson.steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      // Award XP for completing lesson
+      await updateXP(50);
       onComplete();
     }
   };

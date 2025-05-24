@@ -9,7 +9,117 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          current_level: number | null
+          id: string
+          last_activity_date: string | null
+          streak_days: number | null
+          total_xp: number | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_level?: number | null
+          id: string
+          last_activity_date?: string | null
+          streak_days?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          last_activity_date?: string | null
+          streak_days?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          lesson_id: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          lesson_id: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_quiz_results: {
+        Row: {
+          completed_at: string | null
+          id: string
+          quiz_type: string
+          score: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          quiz_type: string
+          score: number
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          quiz_type?: string
+          score?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_vocabulary_progress: {
+        Row: {
+          id: string
+          last_practiced: string | null
+          mastery_level: number | null
+          times_practiced: number | null
+          user_id: string
+          word_id: string
+        }
+        Insert: {
+          id?: string
+          last_practiced?: string | null
+          mastery_level?: number | null
+          times_practiced?: number | null
+          user_id: string
+          word_id: string
+        }
+        Update: {
+          id?: string
+          last_practiced?: string | null
+          mastery_level?: number | null
+          times_practiced?: number | null
+          user_id?: string
+          word_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
