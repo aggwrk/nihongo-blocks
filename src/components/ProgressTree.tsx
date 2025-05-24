@@ -17,9 +17,10 @@ interface ProgressTreeProps {
   progress: UserProfile;
   completedLessons: string[];
   onBack: () => void;
+  onStartLesson: (lessonId: string) => void;
 }
 
-const ProgressTree = ({ progress, completedLessons, onBack }: ProgressTreeProps) => {
+const ProgressTree = ({ progress, completedLessons, onBack, onStartLesson }: ProgressTreeProps) => {
   const lessons = [
     {
       id: 'particles-intro',
@@ -92,6 +93,10 @@ const ProgressTree = ({ progress, completedLessons, onBack }: ProgressTreeProps)
     if (isLessonCompleted(lesson.id)) return 'completed';
     if (isLessonUnlocked(lesson)) return 'available';
     return 'locked';
+  };
+
+  const handleStartLesson = (lessonId: string) => {
+    onStartLesson(lessonId);
   };
 
   return (
@@ -175,14 +180,22 @@ const ProgressTree = ({ progress, completedLessons, onBack }: ProgressTreeProps)
                 </div>
 
                 {isAvailable && !isCompleted && (
-                  <Button size="sm" className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+                  <Button 
+                    size="sm" 
+                    className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
+                    onClick={() => handleStartLesson(lesson.id)}
+                  >
                     <Play className="w-3 h-3 mr-1" />
                     Start
                   </Button>
                 )}
                 
                 {isCompleted && (
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleStartLesson(lesson.id)}
+                  >
                     Review
                   </Button>
                 )}

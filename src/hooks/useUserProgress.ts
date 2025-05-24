@@ -148,12 +148,60 @@ export const useUserProgress = () => {
     }
   };
 
+  const saveQuizResult = async (quizType: string, score: number, totalQuestions: number) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_quiz_results')
+        .insert({
+          user_id: user.id,
+          quiz_type: quizType,
+          score,
+          total_questions: totalQuestions,
+        });
+
+      if (error) {
+        console.error('Error saving quiz result:', error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const updateVocabularyProgress = async (wordId: string, masteryLevel: number = 1) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_vocabulary_progress')
+        .upsert({
+          user_id: user.id,
+          word_id: wordId,
+          mastery_level: masteryLevel,
+          last_practiced: new Date().toISOString(),
+          times_practiced: 1,
+        }, {
+          onConflict: 'user_id,word_id',
+          ignoreDuplicates: false
+        });
+
+      if (error) {
+        console.error('Error updating vocabulary progress:', error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   return { 
     profile, 
     completedLessons, 
     loading, 
     updateXP, 
     fetchProfile, 
-    markLessonComplete 
+    markLessonComplete,
+    saveQuizResult,
+    updateVocabularyProgress
   };
 };

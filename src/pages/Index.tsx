@@ -17,8 +17,9 @@ type AppMode = 'home' | 'lesson' | 'quiz' | 'progress' | 'vocabulary';
 
 const Index = () => {
   const [currentMode, setCurrentMode] = useState<AppMode>('home');
+  const [currentLessonId, setCurrentLessonId] = useState<string | undefined>(undefined);
   const { user, signOut, loading } = useAuth();
-  const { profile, completedLessons, loading: profileLoading } = useUserProgress();
+  const { profile, completedLessons, loading: profileLoading, markLessonComplete, updateXP } = useUserProgress();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,16 +48,42 @@ const Index = () => {
     navigate('/auth');
   };
 
+  const handleStartLesson = (lessonId: string) => {
+    setCurrentLessonId(lessonId);
+    setCurrentMode('lesson');
+  };
+
+  const handleLessonComplete = async () => {
+    if (currentLessonId) {
+      await markLessonComplete(currentLessonId);
+      await updateXP(50); // Award XP for lesson completion
+    }
+    setCurrentLessonId(undefined);
+    setCurrentMode('home');
+  };
+
   const renderContent = () => {
     switch (currentMode) {
       case 'lesson':
-        return <ExpandedGrammarLesson onComplete={() => setCurrentMode('home')} />;
+        return (
+          <ExpandedGrammarLesson 
+            onComplete={handleLessonComplete} 
+            lessonId={currentLessonId}
+          />
+        );
       case 'quiz':
         return <ExpandedQuizMode onComplete={() => setCurrentMode('home')} />;
       case 'vocabulary':
         return <VocabularyMode onComplete={() => setCurrentMode('home')} />;
       case 'progress':
-        return <ProgressTree progress={profile} completedLessons={completedLessons} onBack={() => setCurrentMode('home')} />;
+        return (
+          <ProgressTree 
+            progress={profile} 
+            completedLessons={completedLessons} 
+            onBack={() => setCurrentMode('home')}
+            onStartLesson={handleStartLesson}
+          />
+        );
       default:
         return (
           <div className="space-y-8">
