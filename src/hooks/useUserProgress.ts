@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +28,69 @@ export const useUserProgress = () => {
     }
   }, [user]);
 
+  const calculateStreak = (lastActivityDate: string): number => {
+    const today = new Date();
+    const lastActivity = new Date(lastActivityDate);
+    const daysDiff = Math.floor((today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === 0) {
+      // Same day - maintain current streak
+      return 1; // Will be handled properly in updateStreak
+    } else if (daysDiff === 1) {
+      // Yesterday - increment streak
+      return 1; // Will be incremented in updateStreak
+    } else {
+      // More than 1 day - reset streak
+      return 1;
+    }
+  };
+
+  const updateStreak = async () => {
+    if (!user || !profile) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastActivityDate = profile.last_activity_date;
+    
+    if (lastActivityDate === today) {
+      // Already updated today, no change needed
+      return;
+    }
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    let newStreak = 1;
+    
+    if (lastActivityDate === yesterdayStr) {
+      // Consecutive day - increment streak
+      newStreak = profile.streak_days + 1;
+    } else {
+      // Break in streak - reset to 1
+      newStreak = 1;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          streak_days: newStreak,
+          last_activity_date: today,
+        })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating streak:', error);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   const fetchProfile = async () => {
     if (!user) return;
 
@@ -44,7 +106,6 @@ export const useUserProgress = () => {
       } else if (data) {
         setProfile(data);
       } else {
-        // Create profile if it doesn't exist
         await createProfile();
       }
     } catch (error) {
@@ -101,16 +162,18 @@ export const useUserProgress = () => {
   const updateXP = async (xpGained: number) => {
     if (!user || !profile) return;
 
+    // Update streak when gaining XP (indicates activity)
+    await updateStreak();
+
     try {
       const newXP = profile.total_xp + xpGained;
-      const newLevel = Math.floor(newXP / 200) + 1; // Level up every 200 XP
+      const newLevel = Math.floor(newXP / 200) + 1;
 
       const { data, error } = await supabase
         .from('profiles')
         .update({
           total_xp: newXP,
           current_level: newLevel,
-          last_activity_date: new Date().toISOString().split('T')[0],
         })
         .eq('id', user.id)
         .select()
@@ -142,6 +205,7 @@ export const useUserProgress = () => {
         console.error('Error marking lesson complete:', error);
       } else {
         setCompletedLessons(prev => [...new Set([...prev, lessonId])]);
+        await updateStreak(); // Update streak on lesson completion
       }
     } catch (error) {
       console.error('Error:', error);
@@ -164,7 +228,6 @@ export const useUserProgress = () => {
       if (error) {
         console.error('Error saving quiz result:', error);
       } else {
-        // Award XP based on quiz performance
         const xpGained = Math.floor((score / totalQuestions) * 50);
         await updateXP(xpGained);
       }
@@ -177,7 +240,6 @@ export const useUserProgress = () => {
     if (!user) return;
 
     try {
-      // First check if record exists
       const { data: existing } = await supabase
         .from('user_vocabulary_progress')
         .select('*')
@@ -186,7 +248,6 @@ export const useUserProgress = () => {
         .single();
 
       if (existing) {
-        // Update existing record
         const { error } = await supabase
           .from('user_vocabulary_progress')
           .update({
@@ -201,7 +262,6 @@ export const useUserProgress = () => {
           console.error('Error updating vocabulary progress:', error);
         }
       } else {
-        // Create new record
         const { error } = await supabase
           .from('user_vocabulary_progress')
           .insert({
@@ -216,6 +276,8 @@ export const useUserProgress = () => {
           console.error('Error creating vocabulary progress:', error);
         }
       }
+
+      await updateStreak(); // Update streak on vocabulary practice
     } catch (error) {
       console.error('Error:', error);
     }
@@ -229,6 +291,7 @@ export const useUserProgress = () => {
     fetchProfile, 
     markLessonComplete,
     saveQuizResult,
-    updateVocabularyProgress
+    updateVocabularyProgress,
+    updateStreak
   };
 };
