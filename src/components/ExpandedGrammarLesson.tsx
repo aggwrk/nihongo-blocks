@@ -1,37 +1,108 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Volume2 } from 'lucide-react';
-import { useUserProgress } from '@/hooks/useUserProgress';
+import { ArrowLeft, ArrowRight, CheckCircle, BookOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { expandedLessonData } from '@/data/expandedLessonData';
-import GrammarBlock from './GrammarBlock';
 
 interface ExpandedGrammarLessonProps {
   onComplete: () => void;
   lessonId?: string;
 }
 
+interface LessonContent {
+  title: string;
+  description: string;
+  sections: Array<{
+    type: 'text' | 'example' | 'practice';
+    content: string;
+    examples?: Array<{
+      japanese: string;
+      romaji: string;
+      english: string;
+    }>;
+  }>;
+}
+
 const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonProps) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const { profile, updateXP } = useUserProgress();
+  const [currentSection, setCurrentSection] = useState(0);
+  const [lessonContent, setLessonContent] = useState<LessonContent | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Determine lesson based on user level if not specified
-  const userLevel = profile?.current_level || 1;
-  let defaultLessonId = 'particles-intro';
-  
-  if (userLevel >= 2) {
-    defaultLessonId = 'particles-ga-wo';
-  }
-  if (userLevel >= 3) {
-    defaultLessonId = 'location-particles';
-  }
+  useEffect(() => {
+    loadLessonContent();
+  }, [lessonId]);
 
-  const actualLessonId = lessonId || defaultLessonId;
-  const lesson = expandedLessonData[actualLessonId as keyof typeof expandedLessonData];
+  const loadLessonContent = async () => {
+    if (!lessonId) {
+      // Default lesson if no ID provided
+      setLessonContent(expandedLessonData['particles-intro']);
+      setLoading(false);
+      return;
+    }
 
-  if (!lesson) {
+    try {
+      // First try to get from database
+      const { data: dbLesson, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('id', lessonId)
+        .single();
+
+      if (dbLesson && !error) {
+        // Transform database lesson to expected format
+        const content: LessonContent = {
+          title: dbLesson.title,
+          description: dbLesson.description,
+          sections: Array.isArray(dbLesson.content) ? dbLesson.content : [
+            {
+              type: 'text',
+              content: dbLesson.description
+            }
+          ]
+        };
+        setLessonContent(content);
+      } else {
+        // Fallback to static lessons
+        const staticLesson = expandedLessonData[lessonId];
+        if (staticLesson) {
+          setLessonContent(staticLesson);
+        } else {
+          // Create a basic lesson structure for unknown lessons
+          setLessonContent({
+            title: `Lesson: ${lessonId}`,
+            description: 'This lesson content is being prepared.',
+            sections: [
+              {
+                type: 'text',
+                content: 'This lesson is currently under development. Please check back later for complete content!'
+              }
+            ]
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading lesson:', error);
+      // Fallback to static lesson or create basic structure
+      const staticLesson = expandedLessonData[lessonId || 'particles-intro'];
+      setLessonContent(staticLesson || {
+        title: 'Grammar Lesson',
+        description: 'Learn Japanese grammar step by step',
+        sections: [
+          {
+            type: 'text',
+            content: 'Welcome to this grammar lesson! Let\'s start learning together.'
+          }
+        ]
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -39,38 +110,94 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Loading...</h2>
+          </div>
+          <div className="w-16" />
         </div>
+        <div className="text-center">Loading lesson content...</div>
+      </div>
+    );
+  }
+
+  if (!lessonContent) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Lesson Not Found</h2>
+          </div>
+          <div className="w-16" />
+        </div>
+
         <Card className="glass-card p-6 text-center">
-          <p>Lesson not found</p>
+          <div className="text-4xl mb-4">📚</div>
+          <h3 className="text-lg font-semibold mb-2">Lesson content not available</h3>
+          <p className="text-gray-600">This lesson is currently being prepared. Please try another lesson!</p>
+          <Button onClick={onComplete} className="mt-4">
+            Go Back
+          </Button>
         </Card>
       </div>
     );
   }
 
-  const currentLesson = lesson.steps[currentStep];
-  const progress = ((currentStep + 1) / lesson.steps.length) * 100;
+  const currentSectionData = lessonContent.sections[currentSection];
+  const progress = ((currentSection + 1) / lessonContent.sections.length) * 100;
 
-  const handleNext = async () => {
-    if (currentStep < lesson.steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+  const handleNext = () => {
+    if (currentSection < lessonContent.sections.length - 1) {
+      setCurrentSection(currentSection + 1);
     } else {
-      // Award XP for completing lesson
-      await updateXP(50);
       onComplete();
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    if (currentSection > 0) {
+      setCurrentSection(currentSection - 1);
     }
   };
 
-  const playAudio = () => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(currentLesson.example.japanese);
-      utterance.lang = 'ja-JP';
-      speechSynthesis.speak(utterance);
+  const renderSectionContent = () => {
+    switch (currentSectionData.type) {
+      case 'example':
+        return (
+          <div className="space-y-4">
+            <p className="text-gray-700 leading-relaxed">{currentSectionData.content}</p>
+            {currentSectionData.examples && (
+              <div className="space-y-3">
+                {currentSectionData.examples.map((example, index) => (
+                  <Card key={index} className="p-4 bg-kawaii-yellow/20 border border-kawaii-yellow/30">
+                    <div className="space-y-1">
+                      <p className="text-lg font-medium text-gray-800">{example.japanese}</p>
+                      <p className="text-sm text-gray-600">{example.romaji}</p>
+                      <p className="text-sm text-kawaii-mint font-medium">{example.english}</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      case 'practice':
+        return (
+          <div className="space-y-4">
+            <p className="text-gray-700 leading-relaxed">{currentSectionData.content}</p>
+            <Card className="p-4 bg-kawaii-lavender/20 border border-kawaii-lavender/30">
+              <div className="text-center">
+                <div className="text-2xl mb-2">🎯</div>
+                <p className="text-sm text-gray-600">Practice exercises will be added here!</p>
+              </div>
+            </Card>
+          </div>
+        );
+      default:
+        return <p className="text-gray-700 leading-relaxed">{currentSectionData.content}</p>;
     }
   };
 
@@ -83,8 +210,11 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
           Back
         </Button>
         <div className="text-center">
-          <h2 className="text-lg font-semibold">{lesson.title}</h2>
-          <p className="text-sm text-gray-600">Step {currentStep + 1} of {lesson.steps.length}</p>
+          <h2 className="text-lg font-semibold flex items-center">
+            <BookOpen className="w-4 h-4 mr-2" />
+            {lessonContent.title}
+          </h2>
+          <p className="text-sm text-gray-600">Section {currentSection + 1} of {lessonContent.sections.length}</p>
         </div>
         <div className="w-16" />
       </div>
@@ -94,69 +224,47 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
 
       {/* Lesson Content */}
       <Card className="glass-card p-6 space-y-6">
-        <div className="text-center space-y-2">
-          <h3 className="text-xl font-bold text-gray-800">{currentLesson.title}</h3>
-          <p className="text-gray-600">{currentLesson.explanation}</p>
+        <div className="text-center">
+          <p className="text-sm text-gray-600 mb-4">{lessonContent.description}</p>
         </div>
 
-        {/* Grammar Blocks */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-semibold">Example Sentence:</h4>
-            <Button variant="ghost" size="sm" onClick={playAudio}>
-              <Volume2 className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="bg-white/50 rounded-xl p-4 space-y-3">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {currentLesson.example.blocks.map((block, index) => (
-                <GrammarBlock
-                  key={index}
-                  text={block.text}
-                  romaji={block.romaji}
-                  type={block.type as any}
-                  meaning={block.meaning}
-                />
-              ))}
-            </div>
-            
-            <div className="text-center space-y-1">
-              <p className="text-sm text-gray-600">{currentLesson.example.romaji}</p>
-              <p className="text-sm font-medium">{currentLesson.example.english}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Grammar Tip */}
-        <div className="bg-kawaii-yellow/30 rounded-xl p-4 border-l-4 border-kawaii-yellow">
-          <div className="flex items-start space-x-2">
-            <span className="text-lg">💡</span>
-            <div>
-              <h5 className="font-semibold text-sm">Grammar Tip:</h5>
-              <p className="text-sm text-gray-700">{currentLesson.tip}</p>
-            </div>
-          </div>
+          {renderSectionContent()}
         </div>
       </Card>
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <Button
           variant="outline"
           onClick={handlePrevious}
-          disabled={currentStep === 0}
+          disabled={currentSection === 0}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
-        
+
+        <div className="text-center">
+          <div className="text-xs text-gray-500">
+            Progress: {Math.round(progress)}%
+          </div>
+        </div>
+
         <Button
           onClick={handleNext}
           className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
         >
-          {currentStep === lesson.steps.length - 1 ? 'Complete' : 'Next'}
-          <ArrowRight className="w-4 h-4 ml-2" />
+          {currentSection === lessonContent.sections.length - 1 ? (
+            <>
+              Complete
+              <CheckCircle className="w-4 h-4 ml-2" />
+            </>
+          ) : (
+            <>
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </>
+          )}
         </Button>
       </div>
     </div>

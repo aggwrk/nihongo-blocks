@@ -4,8 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, Trophy, Star, RotateCcw } from 'lucide-react';
-import GrammarBlock from './GrammarBlock';
-import { quizData } from '@/data/lessonData';
+import { useQuizzes } from '@/hooks/useQuizzes';
+import { useUserProgress } from '@/hooks/useUserProgress';
 
 interface ExpandedQuizModeProps {
   onComplete: () => void;
@@ -13,14 +13,26 @@ interface ExpandedQuizModeProps {
 
 const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedBlocks, setSelectedBlocks] = useState<string[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [timeLeft, setTimeLeft] = useState(45);
   const [isTimerActive, setIsTimerActive] = useState(true);
 
-  const currentQ = quizData[currentQuestion];
-  const progress = ((currentQuestion + 1) / quizData.length) * 100;
+  const { questions, loading } = useQuizzes();
+  const { profile, saveQuizResult } = useUserProgress();
+
+  // Filter questions based on user level
+  const userLevel = profile?.current_level || 1;
+  const availableQuestions = questions.filter(q => {
+    if (!q.jlpt_level) return q.difficulty <= userLevel;
+    const levelMap = { 'N5': 1, 'N4': 2, 'N3': 3, 'N2': 4, 'N1': 5 };
+    const questionLevel = levelMap[q.jlpt_level as keyof typeof levelMap] || 1;
+    return questionLevel <= Math.min(userLevel, 2); // Cap at N4 for now
+  }).slice(0, 10); // Limit to 10 questions
+
+  const currentQ = availableQuestions[currentQuestion];
+  const progress = availableQuestions.length > 0 ? ((currentQuestion + 1) / availableQuestions.length) * 100 : 0;
 
   useEffect(() => {
     if (timeLeft > 0 && !showResult && isTimerActive) {
@@ -31,41 +43,80 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
     }
   }, [timeLeft, showResult, isTimerActive]);
 
-  const handleBlockClick = (text: string) => {
-    if (selectedBlocks.includes(text)) {
-      setSelectedBlocks(selectedBlocks.filter(block => block !== text));
-    } else {
-      setSelectedBlocks([...selectedBlocks, text]);
-    }
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
   };
 
   const handleSubmit = () => {
     setIsTimerActive(false);
-    const isCorrect = JSON.stringify(selectedBlocks) === JSON.stringify(currentQ.correctOrder);
+    const isCorrect = selectedAnswer === currentQ.correct_answer;
     if (isCorrect) {
       setScore(score + 1);
     }
     setShowResult(true);
   };
 
-  const handleNext = () => {
-    if (currentQuestion < quizData.length - 1) {
+  const handleNext = async () => {
+    if (currentQuestion < availableQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-      setSelectedBlocks([]);
+      setSelectedAnswer('');
       setShowResult(false);
       setTimeLeft(45);
       setIsTimerActive(true);
     } else {
+      // Save quiz result
+      await saveQuizResult('general', score, availableQuestions.length);
       onComplete();
     }
   };
 
   const resetAnswer = () => {
-    setSelectedBlocks([]);
+    setSelectedAnswer('');
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Grammar Quiz</h2>
+          </div>
+          <div className="w-16" />
+        </div>
+        <div className="text-center">Loading questions...</div>
+      </div>
+    );
+  }
+
+  if (availableQuestions.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Grammar Quiz</h2>
+          </div>
+          <div className="w-16" />
+        </div>
+
+        <Card className="glass-card p-6 text-center">
+          <div className="text-4xl mb-4">📝</div>
+          <h3 className="text-lg font-semibold mb-2">No quiz questions available</h3>
+          <p className="text-gray-600">Complete more lessons to unlock quiz questions!</p>
+        </Card>
+      </div>
+    );
+  }
+
   if (showResult) {
-    const isCorrect = JSON.stringify(selectedBlocks) === JSON.stringify(currentQ.correctOrder);
+    const isCorrect = selectedAnswer === currentQ.correct_answer;
     return (
       <div className="space-y-6">
         <Card className="glass-card p-8 text-center space-y-6">
@@ -78,43 +129,22 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
           
           <div className="space-y-4">
             <div className="bg-kawaii-mint/30 rounded-xl p-4">
+              <h4 className="font-semibold mb-2">Question:</h4>
+              <p className="text-sm text-gray-700 mb-2">{currentQ.question_text}</p>
               <h4 className="font-semibold mb-2">Correct Answer:</h4>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {currentQ.correctOrder.map((text, index) => {
-                  const block = currentQ.blocks.find(b => b.text === text)!;
-                  return (
-                    <GrammarBlock
-                      key={index}
-                      text={block.text}
-                      romaji={block.romaji}
-                      type={block.type}
-                      meaning={block.meaning}
-                      className="scale-75"
-                    />
-                  );
-                })}
-              </div>
-              <p className="text-sm text-gray-600 mt-2">{currentQ.translation}</p>
+              <p className="text-sm text-green-700 font-medium">{currentQ.correct_answer}</p>
+              {currentQ.explanation && (
+                <div className="mt-2">
+                  <h4 className="font-semibold mb-1">Explanation:</h4>
+                  <p className="text-xs text-gray-600">{currentQ.explanation}</p>
+                </div>
+              )}
             </div>
 
             {!isCorrect && (
               <div className="bg-kawaii-peach/30 rounded-xl p-4">
                 <h4 className="font-semibold mb-2">Your Answer:</h4>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {selectedBlocks.map((text, index) => {
-                    const block = currentQ.blocks.find(b => b.text === text)!;
-                    return (
-                      <GrammarBlock
-                        key={index}
-                        text={block.text}
-                        romaji={block.romaji}
-                        type={block.type}
-                        meaning={block.meaning}
-                        className="scale-75"
-                      />
-                    );
-                  })}
-                </div>
+                <p className="text-sm text-red-700">{selectedAnswer || 'No answer selected'}</p>
               </div>
             )}
             
@@ -130,7 +160,7 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
             onClick={handleNext}
             className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
           >
-            {currentQuestion === quizData.length - 1 ? 'Finish Quiz' : 'Next Question'}
+            {currentQuestion === availableQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </Card>
@@ -148,7 +178,7 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
         </Button>
         <div className="text-center">
           <h2 className="text-lg font-semibold">Grammar Quiz</h2>
-          <p className="text-sm text-gray-600">Question {currentQuestion + 1} of {quizData.length}</p>
+          <p className="text-sm text-gray-600">Question {currentQuestion + 1} of {availableQuestions.length}</p>
         </div>
         <div className="text-center">
           <div className={`text-lg font-bold ${timeLeft <= 10 ? 'text-red-500' : 'text-kawaii-mint'}`}>
@@ -164,66 +194,49 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
       {/* Quiz Content */}
       <Card className="glass-card p-6 space-y-6">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-800">{currentQ.prompt}</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{currentQ.question_text}</h3>
+          {currentQ.jlpt_level && (
+            <p className="text-sm text-gray-600 mt-2">Level: {currentQ.jlpt_level}</p>
+          )}
         </div>
 
-        {/* Selected Blocks (Answer Area) */}
-        <div className="bg-white/50 rounded-xl p-4 min-h-[120px] border-2 border-dashed border-gray-300">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-medium text-gray-600">Your Answer:</h4>
+        {/* Answer Options */}
+        <div className="space-y-3">
+          {currentQ.options?.map((option, index) => (
+            <Button
+              key={index}
+              variant={selectedAnswer === option ? "default" : "outline"}
+              className={`w-full p-4 text-left justify-start ${
+                selectedAnswer === option 
+                  ? 'bg-kawaii-mint hover:bg-kawaii-sky text-gray-800' 
+                  : 'hover:bg-gray-50'
+              }`}
+              onClick={() => handleAnswerSelect(option)}
+            >
+              <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
+              {option}
+            </Button>
+          ))}
+        </div>
+
+        {selectedAnswer && (
+          <div className="flex justify-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={resetAnswer}
-              disabled={selectedBlocks.length === 0}
             >
               <RotateCcw className="w-3 h-3 mr-1" />
-              Reset
+              Clear Answer
             </Button>
           </div>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {selectedBlocks.map((text, index) => {
-              const block = currentQ.blocks.find(b => b.text === text)!;
-              return (
-                <GrammarBlock
-                  key={index}
-                  text={block.text}
-                  romaji={block.romaji}
-                  type={block.type}
-                  meaning={block.meaning}
-                  onClick={() => handleBlockClick(text)}
-                  className="scale-90"
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Available Blocks */}
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-600">Available Blocks:</h4>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {currentQ.blocks
-              .filter(block => !selectedBlocks.includes(block.text))
-              .map((block, index) => (
-                <GrammarBlock
-                  key={index}
-                  text={block.text}
-                  romaji={block.romaji}
-                  type={block.type}
-                  meaning={block.meaning}
-                  onClick={() => handleBlockClick(block.text)}
-                  className="scale-90"
-                />
-              ))}
-          </div>
-        </div>
+        )}
       </Card>
 
       {/* Submit Button */}
       <Button
         onClick={handleSubmit}
-        disabled={selectedBlocks.length !== currentQ.correctOrder.length}
+        disabled={!selectedAnswer}
         className="w-full bg-kawaii-pink hover:bg-kawaii-peach text-gray-800"
         size="lg"
       >
@@ -234,7 +247,7 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
       <div className="text-center">
         <div className="inline-flex items-center space-x-2 bg-white/80 rounded-full px-4 py-2">
           <Trophy className="w-4 h-4 text-kawaii-mint" />
-          <span className="text-sm font-medium">Score: {score}/{quizData.length}</span>
+          <span className="text-sm font-medium">Score: {score}/{availableQuestions.length}</span>
         </div>
       </div>
     </div>
