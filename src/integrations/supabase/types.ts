@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      lessons: {
+        Row: {
+          category: string
+          content: Json
+          created_at: string | null
+          description: string
+          id: string
+          jlpt_level: string | null
+          level_required: number | null
+          order_index: number | null
+          title: string
+          xp_reward: number | null
+        }
+        Insert: {
+          category: string
+          content: Json
+          created_at?: string | null
+          description: string
+          id: string
+          jlpt_level?: string | null
+          level_required?: number | null
+          order_index?: number | null
+          title: string
+          xp_reward?: number | null
+        }
+        Update: {
+          category?: string
+          content?: Json
+          created_at?: string | null
+          description?: string
+          id?: string
+          jlpt_level?: string | null
+          level_required?: number | null
+          order_index?: number | null
+          title?: string
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -42,6 +81,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_questions: {
+        Row: {
+          category: string
+          correct_answer: string
+          created_at: string | null
+          difficulty: number | null
+          explanation: string | null
+          id: string
+          jlpt_level: string | null
+          options: Json | null
+          question_text: string
+          question_type: string
+        }
+        Insert: {
+          category: string
+          correct_answer: string
+          created_at?: string | null
+          difficulty?: number | null
+          explanation?: string | null
+          id: string
+          jlpt_level?: string | null
+          options?: Json | null
+          question_text: string
+          question_type: string
+        }
+        Update: {
+          category?: string
+          correct_answer?: string
+          created_at?: string | null
+          difficulty?: number | null
+          explanation?: string | null
+          id?: string
+          jlpt_level?: string | null
+          options?: Json | null
+          question_text?: string
+          question_type?: string
+        }
+        Relationships: []
+      }
       user_lesson_progress: {
         Row: {
           completed_at: string | null
@@ -64,7 +142,15 @@ export type Database = {
           score?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_lesson_progress_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_quiz_results: {
         Row: {
@@ -91,7 +177,15 @@ export type Database = {
           total_questions?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_quiz_results_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_vocabulary_progress: {
         Row: {
@@ -117,6 +211,59 @@ export type Database = {
           times_practiced?: number | null
           user_id?: string
           word_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_vocabulary_progress_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vocabulary_words: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          english: string
+          example_english: string | null
+          example_japanese: string | null
+          example_romaji: string | null
+          hiragana: string
+          id: string
+          japanese: string
+          jlpt_level: string
+          romaji: string
+          word_type: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          english: string
+          example_english?: string | null
+          example_japanese?: string | null
+          example_romaji?: string | null
+          hiragana: string
+          id: string
+          japanese: string
+          jlpt_level: string
+          romaji: string
+          word_type: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          english?: string
+          example_english?: string | null
+          example_japanese?: string | null
+          example_romaji?: string | null
+          hiragana?: string
+          id?: string
+          japanese?: string
+          jlpt_level?: string
+          romaji?: string
+          word_type?: string
         }
         Relationships: []
       }

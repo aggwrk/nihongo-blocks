@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { useUserProgress } from '@/hooks/useUserProgress';
-import { vocabularyByLevel } from '@/data/expandedVocabulary';
+import { useVocabulary } from '@/hooks/useVocabulary';
 import VocabularyCard from './VocabularyCard';
 
 interface VocabularyModeProps {
@@ -14,22 +14,23 @@ interface VocabularyModeProps {
 
 const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
   const [currentWord, setCurrentWord] = useState(0);
-  const { profile, updateXP } = useUserProgress();
+  const { profile, updateXP, updateVocabularyProgress } = useUserProgress();
+  const { getVocabularyByLevel, loading } = useVocabulary();
 
   // Get vocabulary based on user's level
   const userLevel = profile?.current_level || 1;
-  const availableWords = [];
-  
-  // Include words from current level and below
-  for (let level = 1; level <= userLevel; level++) {
-    if (vocabularyByLevel[level as keyof typeof vocabularyByLevel]) {
-      availableWords.push(...vocabularyByLevel[level as keyof typeof vocabularyByLevel]);
-    }
-  }
+  const availableWords = getVocabularyByLevel(userLevel);
 
-  const progress = ((currentWord + 1) / availableWords.length) * 100;
+  const progress = availableWords.length > 0 ? ((currentWord + 1) / availableWords.length) * 100 : 0;
 
   const handleNext = async () => {
+    const currentWordData = availableWords[currentWord];
+    
+    // Update vocabulary progress
+    if (currentWordData) {
+      await updateVocabularyProgress(currentWordData.id);
+    }
+
     if (currentWord < availableWords.length - 1) {
       setCurrentWord(currentWord + 1);
     } else {
@@ -38,6 +39,24 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
       onComplete();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Vocabulary</h2>
+          </div>
+          <div className="w-16" />
+        </div>
+        <div className="text-center">Loading vocabulary...</div>
+      </div>
+    );
+  }
 
   if (availableWords.length === 0) {
     return (
@@ -85,7 +104,18 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
 
       {/* Vocabulary Card */}
       <VocabularyCard
-        word={availableWords[currentWord]}
+        word={{
+          japanese: availableWords[currentWord].japanese,
+          hiragana: availableWords[currentWord].hiragana,
+          romaji: availableWords[currentWord].romaji,
+          english: availableWords[currentWord].english,
+          type: availableWords[currentWord].word_type,
+          example: availableWords[currentWord].example_japanese ? {
+            japanese: availableWords[currentWord].example_japanese!,
+            romaji: availableWords[currentWord].example_romaji!,
+            english: availableWords[currentWord].example_english!
+          } : undefined
+        }}
         onNext={handleNext}
       />
 

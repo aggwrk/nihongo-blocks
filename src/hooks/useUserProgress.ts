@@ -163,6 +163,10 @@ export const useUserProgress = () => {
 
       if (error) {
         console.error('Error saving quiz result:', error);
+      } else {
+        // Award XP based on quiz performance
+        const xpGained = Math.floor((score / totalQuestions) * 50);
+        await updateXP(xpGained);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -173,21 +177,44 @@ export const useUserProgress = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      // First check if record exists
+      const { data: existing } = await supabase
         .from('user_vocabulary_progress')
-        .upsert({
-          user_id: user.id,
-          word_id: wordId,
-          mastery_level: masteryLevel,
-          last_practiced: new Date().toISOString(),
-          times_practiced: 1,
-        }, {
-          onConflict: 'user_id,word_id',
-          ignoreDuplicates: false
-        });
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('word_id', wordId)
+        .single();
 
-      if (error) {
-        console.error('Error updating vocabulary progress:', error);
+      if (existing) {
+        // Update existing record
+        const { error } = await supabase
+          .from('user_vocabulary_progress')
+          .update({
+            mastery_level: Math.min(existing.mastery_level + 1, 5),
+            last_practiced: new Date().toISOString(),
+            times_practiced: existing.times_practiced + 1,
+          })
+          .eq('user_id', user.id)
+          .eq('word_id', wordId);
+
+        if (error) {
+          console.error('Error updating vocabulary progress:', error);
+        }
+      } else {
+        // Create new record
+        const { error } = await supabase
+          .from('user_vocabulary_progress')
+          .insert({
+            user_id: user.id,
+            word_id: wordId,
+            mastery_level: masteryLevel,
+            last_practiced: new Date().toISOString(),
+            times_practiced: 1,
+          });
+
+        if (error) {
+          console.error('Error creating vocabulary progress:', error);
+        }
       }
     } catch (error) {
       console.error('Error:', error);

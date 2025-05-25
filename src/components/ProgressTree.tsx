@@ -1,8 +1,10 @@
 
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Lock, CheckCircle, Play } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import ProgressHeader from './progress/ProgressHeader';
+import ProgressSummary from './progress/ProgressSummary';
+import LessonCard from './progress/LessonCard';
 
 interface UserProfile {
   id: string;
@@ -20,187 +22,157 @@ interface ProgressTreeProps {
   onStartLesson: (lessonId: string) => void;
 }
 
-const ProgressTree = ({ progress, completedLessons, onBack, onStartLesson }: ProgressTreeProps) => {
-  const lessons = [
-    {
-      id: 'particles-intro',
-      title: 'Introduction to Particles',
-      description: 'Learn what particles are and how they work',
-      xp: 50,
-      level: 1,
-      icon: '🔤',
-      prerequisites: []
-    },
-    {
-      id: 'basic-structure',
-      title: 'Basic Sentence Structure',
-      description: 'Subject + Particle + Object + Verb',
-      xp: 75,
-      level: 1,
-      icon: '🏗️',
-      prerequisites: ['particles-intro']
-    },
-    {
-      id: 'wa-vs-ga',
-      title: 'は vs が (Topic vs Subject)',
-      description: 'Master the difference between wa and ga',
-      xp: 100,
-      level: 2,
-      icon: '⚖️',
-      prerequisites: ['basic-structure']
-    },
-    {
-      id: 'object-particles',
-      title: 'Object Particles (を、に、で)',
-      description: 'Learn about direct objects and locations',
-      xp: 125,
-      level: 2,
-      icon: '🎯',
-      prerequisites: ['wa-vs-ga']
-    },
-    {
-      id: 'adjectives-i-na',
-      title: 'い and な Adjectives',
-      description: 'Two types of adjectives in Japanese',
-      xp: 150,
-      level: 3,
-      icon: '🎨',
-      prerequisites: ['object-particles']
-    },
-    {
-      id: 'verb-conjugation',
-      title: 'Basic Verb Conjugation',
-      description: 'Present, past, and negative forms',
-      xp: 200,
-      level: 3,
-      icon: '🔄',
-      prerequisites: ['adjectives-i-na']
-    }
-  ];
+interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  level_required: number;
+  jlpt_level?: string;
+  category: string;
+  xp_reward: number;
+  order_index: number;
+}
 
-  const isLessonUnlocked = (lesson: any) => {
-    if (lesson.prerequisites.length === 0) return true;
-    return lesson.prerequisites.every((prereq: string) => 
-      completedLessons.includes(prereq)
-    );
+const ProgressTree = ({ progress, completedLessons, onBack, onStartLesson }: ProgressTreeProps) => {
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLessons();
+  }, []);
+
+  const fetchLessons = async () => {
+    try {
+      // First get lessons from database
+      const { data: dbLessons, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .order('order_index', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching lessons:', error);
+      }
+
+      // Combine with static lessons for backwards compatibility
+      const staticLessons = [
+        {
+          id: 'particles-intro',
+          title: 'Introduction to Particles',
+          description: 'Learn what particles are and how they work',
+          xp_reward: 50,
+          level_required: 1,
+          category: 'particles',
+          order_index: 0
+        },
+        {
+          id: 'basic-structure',
+          title: 'Basic Sentence Structure',
+          description: 'Subject + Particle + Object + Verb',
+          xp_reward: 75,
+          level_required: 1,
+          category: 'grammar',
+          order_index: 1
+        },
+        {
+          id: 'wa-vs-ga',
+          title: 'は vs が (Topic vs Subject)',
+          description: 'Master the difference between wa and ga',
+          xp_reward: 100,
+          level_required: 2,
+          category: 'particles',
+          order_index: 2
+        },
+        {
+          id: 'object-particles',
+          title: 'Object Particles (を、に、で)',
+          description: 'Learn about direct objects and locations',
+          xp_reward: 125,
+          level_required: 2,
+          category: 'particles',
+          order_index: 3
+        },
+        {
+          id: 'adjectives-i-na',
+          title: 'い and な Adjectives',
+          description: 'Two types of adjectives in Japanese',
+          xp_reward: 150,
+          level_required: 3,
+          category: 'grammar',
+          order_index: 4
+        },
+        {
+          id: 'verb-conjugation',
+          title: 'Basic Verb Conjugation',
+          description: 'Present, past, and negative forms',
+          xp_reward: 200,
+          level_required: 3,
+          category: 'grammar',
+          order_index: 5
+        }
+      ];
+
+      const allLessons = [...staticLessons, ...(dbLessons || [])];
+      setLessons(allLessons.sort((a, b) => a.order_index - b.order_index));
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isLessonUnlocked = (lesson: Lesson) => {
+    // First lesson is always unlocked
+    if (lesson.order_index === 0) return true;
+    
+    // Check if user level meets requirement
+    if (progress.current_level < lesson.level_required) return false;
+    
+    // Check if previous lesson is completed
+    const previousLesson = lessons.find(l => l.order_index === lesson.order_index - 1);
+    if (previousLesson && !completedLessons.includes(previousLesson.id)) {
+      return false;
+    }
+    
+    return true;
   };
 
   const isLessonCompleted = (lessonId: string) => {
     return completedLessons.includes(lessonId);
   };
 
-  const getLessonStatus = (lesson: any) => {
-    if (isLessonCompleted(lesson.id)) return 'completed';
-    if (isLessonUnlocked(lesson)) return 'available';
-    return 'locked';
-  };
-
-  const handleStartLesson = (lessonId: string) => {
-    onStartLesson(lessonId);
-  };
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <ProgressHeader progress={progress} onBack={onBack} />
+        <div className="text-center">Loading lessons...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <div className="text-center">
-          <h2 className="text-lg font-semibold">Progress Tree</h2>
-          <p className="text-sm text-gray-600">Level {progress.current_level} • {progress.total_xp} XP</p>
-        </div>
-        <div className="w-16" />
-      </div>
+      <ProgressHeader progress={progress} onBack={onBack} />
 
-      {/* Progress Summary */}
-      <Card className="glass-card p-4">
-        <div className="flex justify-between items-center">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-kawaii-mint">{completedLessons.length}</div>
-            <div className="text-xs text-gray-600">Completed</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-kawaii-pink">{progress.streak_days}</div>
-            <div className="text-xs text-gray-600">Day Streak</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-kawaii-yellow">{lessons.length - completedLessons.length}</div>
-            <div className="text-xs text-gray-600">Remaining</div>
-          </div>
-        </div>
-      </Card>
+      <ProgressSummary 
+        completedLessons={completedLessons.length}
+        streakDays={progress.streak_days}
+        remainingLessons={lessons.length - completedLessons.length}
+      />
 
       {/* Lesson Tree */}
       <div className="space-y-4">
-        {lessons.map((lesson, index) => {
-          const status = getLessonStatus(lesson);
-          const isCompleted = status === 'completed';
-          const isAvailable = status === 'available';
-          const isLocked = status === 'locked';
+        {lessons.map((lesson) => {
+          const isCompleted = isLessonCompleted(lesson.id);
+          const isAvailable = isLessonUnlocked(lesson);
 
           return (
-            <Card 
+            <LessonCard
               key={lesson.id}
-              className={`p-4 transition-all duration-300 ${
-                isCompleted 
-                  ? 'glass-card border-kawaii-mint bg-kawaii-mint/10' 
-                  : isAvailable 
-                    ? 'glass-card border-kawaii-pink bg-kawaii-pink/10 hover:scale-[1.02]' 
-                    : 'bg-gray-100 border-gray-200'
-              }`}
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`text-3xl ${isLocked ? 'grayscale' : ''}`}>
-                  {lesson.icon}
-                </div>
-                
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <h3 className={`font-semibold ${isLocked ? 'text-gray-400' : 'text-gray-800'}`}>
-                      {lesson.title}
-                    </h3>
-                    {isCompleted && <CheckCircle className="w-4 h-4 text-kawaii-mint" />}
-                    {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
-                  </div>
-                  
-                  <p className={`text-sm ${isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {lesson.description}
-                  </p>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={isCompleted ? 'default' : 'secondary'} className="text-xs">
-                      Level {lesson.level}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {lesson.xp} XP
-                    </Badge>
-                  </div>
-                </div>
-
-                {isAvailable && !isCompleted && (
-                  <Button 
-                    size="sm" 
-                    className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
-                    onClick={() => handleStartLesson(lesson.id)}
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Start
-                  </Button>
-                )}
-                
-                {isCompleted && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleStartLesson(lesson.id)}
-                  >
-                    Review
-                  </Button>
-                )}
-              </div>
-            </Card>
+              lesson={lesson}
+              isCompleted={isCompleted}
+              isAvailable={isAvailable}
+              onStartLesson={onStartLesson}
+            />
           );
         })}
       </div>
@@ -210,7 +182,7 @@ const ProgressTree = ({ progress, completedLessons, onBack, onStartLesson }: Pro
         <div className="text-4xl mb-2">🚀</div>
         <h3 className="font-semibold text-gray-800 mb-2">More lessons coming soon!</h3>
         <p className="text-sm text-gray-600">
-          Advanced grammar, keigo (polite language), and conversation patterns
+          We're continuously adding new content including advanced grammar, business Japanese, and cultural lessons
         </p>
       </Card>
     </div>
