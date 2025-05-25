@@ -34,7 +34,12 @@ export const useVocabulary = () => {
       if (error) {
         console.error('Error fetching vocabulary:', error);
       } else {
-        setVocabulary(data || []);
+        // Type assertion for the word_type field
+        const typedData = (data || []).map(word => ({
+          ...word,
+          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+        }));
+        setVocabulary(typedData);
       }
     } catch (error) {
       console.error('Error:', error);

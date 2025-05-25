@@ -11,7 +11,7 @@ interface VocabularyCardProps {
     hiragana: string;
     romaji: string;
     english: string;
-    type: 'noun' | 'verb' | 'adjective' | 'particle';
+    type: 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression';
     example?: {
       japanese: string;
       romaji: string;
@@ -31,7 +31,9 @@ const VocabularyCard = ({ word, onNext, showExample = true }: VocabularyCardProp
       case 'noun': return 'bg-grammar-subject';
       case 'verb': return 'bg-grammar-verb';
       case 'adjective': return 'bg-grammar-adjective';
+      case 'adverb': return 'bg-kawaii-lavender';
       case 'particle': return 'bg-grammar-particle';
+      case 'expression': return 'bg-kawaii-peach';
       default: return 'bg-gray-100';
     }
   };

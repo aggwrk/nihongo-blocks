@@ -32,7 +32,14 @@ export const useQuizzes = () => {
       if (error) {
         console.error('Error fetching quiz questions:', error);
       } else {
-        setQuestions(data || []);
+        // Type assertion and proper data transformation
+        const typedData = (data || []).map(question => ({
+          ...question,
+          question_type: question.question_type as 'multiple_choice' | 'fill_blank' | 'translation' | 'listening',
+          options: Array.isArray(question.options) ? question.options as string[] : undefined,
+          difficulty: question.difficulty || 1
+        }));
+        setQuestions(typedData);
       }
     } catch (error) {
       console.error('Error:', error);
