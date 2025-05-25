@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,10 +34,31 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
     loadLessonContent();
   }, [lessonId]);
 
+  const transformStaticLessonToSections = (staticLesson: any): LessonContent => {
+    // Transform the old 'steps' format to new 'sections' format
+    if (staticLesson.steps) {
+      return {
+        title: staticLesson.title,
+        description: staticLesson.description,
+        sections: staticLesson.steps.map((step: any) => ({
+          type: 'example' as const,
+          content: `${step.title}\n\n${step.explanation}\n\nTip: ${step.tip}`,
+          examples: step.example ? [{
+            japanese: step.example.japanese,
+            romaji: step.example.romaji,
+            english: step.example.english
+          }] : undefined
+        }))
+      };
+    }
+    return staticLesson;
+  };
+
   const loadLessonContent = async () => {
     if (!lessonId) {
       // Default lesson if no ID provided
-      setLessonContent(expandedLessonData['particles-intro']);
+      const defaultLesson = expandedLessonData['particles-intro'];
+      setLessonContent(transformStaticLessonToSections(defaultLesson));
       setLoading(false);
       return;
     }
@@ -53,22 +73,34 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
 
       if (dbLesson && !error) {
         // Transform database lesson to expected format
+        let sections: LessonContent['sections'] = [];
+        
+        if (Array.isArray(dbLesson.content)) {
+          // Try to cast the Json content to our expected structure
+          sections = (dbLesson.content as any[]).map((section: any) => ({
+            type: section.type || 'text',
+            content: section.content || section.toString(),
+            examples: section.examples || undefined
+          }));
+        } else {
+          // Fallback for non-array content
+          sections = [{
+            type: 'text',
+            content: dbLesson.description
+          }];
+        }
+
         const content: LessonContent = {
           title: dbLesson.title,
           description: dbLesson.description,
-          sections: Array.isArray(dbLesson.content) ? dbLesson.content : [
-            {
-              type: 'text',
-              content: dbLesson.description
-            }
-          ]
+          sections: sections
         };
         setLessonContent(content);
       } else {
         // Fallback to static lessons
         const staticLesson = expandedLessonData[lessonId];
         if (staticLesson) {
-          setLessonContent(staticLesson);
+          setLessonContent(transformStaticLessonToSections(staticLesson));
         } else {
           // Create a basic lesson structure for unknown lessons
           setLessonContent({
@@ -87,16 +119,20 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
       console.error('Error loading lesson:', error);
       // Fallback to static lesson or create basic structure
       const staticLesson = expandedLessonData[lessonId || 'particles-intro'];
-      setLessonContent(staticLesson || {
-        title: 'Grammar Lesson',
-        description: 'Learn Japanese grammar step by step',
-        sections: [
-          {
-            type: 'text',
-            content: 'Welcome to this grammar lesson! Let\'s start learning together.'
-          }
-        ]
-      });
+      if (staticLesson) {
+        setLessonContent(transformStaticLessonToSections(staticLesson));
+      } else {
+        setLessonContent({
+          title: 'Grammar Lesson',
+          description: 'Learn Japanese grammar step by step',
+          sections: [
+            {
+              type: 'text',
+              content: 'Welcome to this grammar lesson! Let\'s start learning together.'
+            }
+          ]
+        });
+      }
     } finally {
       setLoading(false);
     }
