@@ -43,8 +43,16 @@ export const useComprehensiveVocabulary = () => {
           ...word,
           word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
         })),
-        ...n5Vocabulary.map(word => ({ ...word, jlpt_level: 'N5' })),
-        ...n4Vocabulary.map(word => ({ ...word, jlpt_level: 'N4' }))
+        ...n5Vocabulary.map(word => ({ 
+          ...word, 
+          jlpt_level: 'N5',
+          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+        })),
+        ...n4Vocabulary.map(word => ({ 
+          ...word, 
+          jlpt_level: 'N4',
+          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+        }))
       ];
 
       // Remove duplicates based on ID
@@ -57,8 +65,16 @@ export const useComprehensiveVocabulary = () => {
       console.error('Error loading vocabulary:', error);
       // Fallback to local data only
       const localVocabulary = [
-        ...n5Vocabulary.map(word => ({ ...word, jlpt_level: 'N5' })),
-        ...n4Vocabulary.map(word => ({ ...word, jlpt_level: 'N4' }))
+        ...n5Vocabulary.map(word => ({ 
+          ...word, 
+          jlpt_level: 'N5',
+          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+        })),
+        ...n4Vocabulary.map(word => ({ 
+          ...word, 
+          jlpt_level: 'N4',
+          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+        }))
       ];
       setVocabulary(localVocabulary);
     } finally {
