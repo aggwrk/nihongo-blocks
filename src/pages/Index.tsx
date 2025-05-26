@@ -1,211 +1,262 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Star, BookOpen, Play, Book, LogOut, User } from 'lucide-react';
+import { BookOpen, Brain, Languages, Trophy, Calendar, Flame, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgress } from '@/hooks/useUserProgress';
+import { useDailyVocabularyChallenge } from '@/hooks/useDailyVocabularyChallenge';
+import { supabase } from '@/integrations/supabase/client';
 import ExpandedGrammarLesson from '@/components/ExpandedGrammarLesson';
-import ProgressTree from '@/components/ProgressTree';
 import ExpandedQuizMode from '@/components/ExpandedQuizMode';
 import VocabularyMode from '@/components/VocabularyMode';
-
-type AppMode = 'home' | 'lesson' | 'quiz' | 'progress' | 'vocabulary';
+import DailyVocabularyChallenge from '@/components/DailyVocabularyChallenge';
+import ProgressTree from '@/components/ProgressTree';
 
 const Index = () => {
-  const [currentMode, setCurrentMode] = useState<AppMode>('home');
-  const [currentLessonId, setCurrentLessonId] = useState<string | undefined>(undefined);
-  const { user, signOut, loading } = useAuth();
-  const { profile, completedLessons, loading: profileLoading, markLessonComplete, updateXP } = useUserProgress();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile, loading } = useUserProgress();
+  const { todaysChallenge } = useDailyVocabularyChallenge();
+  const [currentMode, setCurrentMode] = useState<'home' | 'lesson' | 'quiz' | 'vocabulary' | 'daily-challenge' | 'progress'>('home');
+  const [selectedLessonId, setSelectedLessonId] = useState<string>('');
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
+    if (user) {
+      fetchCompletedLessons();
     }
-  }, [user, loading, navigate]);
+  }, [user]);
 
-  if (loading || profileLoading) {
+  const fetchCompletedLessons = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching completed lessons:', error);
+      } else {
+        setCompletedLessons(data.map(item => item.lesson_id));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleStartLesson = (lessonId: string) => {
+    setSelectedLessonId(lessonId);
+    setCurrentMode('lesson');
+  };
+
+  const handleCompleteLesson = () => {
+    setCurrentMode('home');
+    fetchCompletedLessons(); // Refresh completed lessons
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="text-6xl animate-float">🌸</div>
-          <p className="text-lg text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (currentMode === 'lesson') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky p-4">
+        <div className="max-w-4xl mx-auto">
+          <ExpandedGrammarLesson 
+            onComplete={handleCompleteLesson}
+            lessonId={selectedLessonId}
+          />
         </div>
       </div>
     );
   }
 
-  if (!user || !profile) {
-    return null;
+  if (currentMode === 'quiz') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky p-4">
+        <div className="max-w-4xl mx-auto">
+          <ExpandedQuizMode onComplete={() => setCurrentMode('home')} />
+        </div>
+      </div>
+    );
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
+  if (currentMode === 'vocabulary') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky p-4">
+        <div className="max-w-4xl mx-auto">
+          <VocabularyMode onComplete={() => setCurrentMode('home')} />
+        </div>
+      </div>
+    );
+  }
 
-  const handleStartLesson = (lessonId: string) => {
-    setCurrentLessonId(lessonId);
-    setCurrentMode('lesson');
-  };
+  if (currentMode === 'daily-challenge') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky p-4">
+        <div className="max-w-4xl mx-auto">
+          <DailyVocabularyChallenge onComplete={() => setCurrentMode('home')} />
+        </div>
+      </div>
+    );
+  }
 
-  const handleLessonComplete = async () => {
-    if (currentLessonId) {
-      await markLessonComplete(currentLessonId);
-      await updateXP(50); // Award XP for lesson completion
-    }
-    setCurrentLessonId(undefined);
-    setCurrentMode('home');
-  };
-
-  const renderContent = () => {
-    switch (currentMode) {
-      case 'lesson':
-        return (
-          <ExpandedGrammarLesson 
-            onComplete={handleLessonComplete} 
-            lessonId={currentLessonId}
-          />
-        );
-      case 'quiz':
-        return <ExpandedQuizMode onComplete={() => setCurrentMode('home')} />;
-      case 'vocabulary':
-        return <VocabularyMode onComplete={() => setCurrentMode('home')} />;
-      case 'progress':
-        return (
+  if (currentMode === 'progress') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky p-4">
+        <div className="max-w-4xl mx-auto">
           <ProgressTree 
-            progress={profile} 
-            completedLessons={completedLessons} 
+            progress={profile!}
+            completedLessons={completedLessons}
             onBack={() => setCurrentMode('home')}
             onStartLesson={handleStartLesson}
           />
-        );
-      default:
-        return (
-          <div className="space-y-8">
-            {/* User Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-kawaii-mint rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-gray-800" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-gray-800">{profile.username || 'Student'}</h2>
-                  <p className="text-sm text-gray-600">Level {profile.current_level}</p>
-                </div>
-              </div>
-              <Button variant="ghost" onClick={handleSignOut}>
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Welcome Header */}
-            <div className="text-center space-y-4">
-              <div className="text-6xl animate-float">🌸</div>
-              <h1 className="text-4xl font-bold text-gray-800">Grammar Quest</h1>
-              <p className="text-lg text-gray-600">Master Japanese grammar step by step!</p>
-            </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            日本語を学ぼう！
+          </h1>
+          <p className="text-xl text-gray-600">Learn Japanese Together</p>
+        </div>
 
-            {/* Progress Overview */}
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-semibold">Level {profile.current_level}</h3>
-                  <p className="text-sm text-gray-600">{profile.total_xp} XP</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="bg-kawaii-yellow">
-                    🔥 {profile.streak_days} day streak
-                  </Badge>
-                  <Badge variant="outline">
-                    <Star className="w-3 h-3 mr-1" />
-                    {profile.current_level < 5 ? 'Beginner' : profile.current_level < 10 ? 'Intermediate' : 'Advanced'}
-                  </Badge>
-                </div>
-              </div>
-              <Progress value={(profile.total_xp % 200) / 2} className="h-3" />
-              <p className="text-xs text-gray-500 mt-2">{200 - (profile.total_xp % 200)} XP until Level {profile.current_level + 1}</p>
+        {/* User Stats */}
+        {profile && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <Card className="glass-card p-4 text-center">
+              <Target className="w-8 h-8 mx-auto mb-2 text-kawaii-mint" />
+              <div className="text-2xl font-bold text-gray-800">{profile.current_level}</div>
+              <div className="text-sm text-gray-600">Level</div>
             </Card>
+            <Card className="glass-card p-4 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+              <div className="text-2xl font-bold text-gray-800">{profile.total_xp}</div>
+              <div className="text-sm text-gray-600">Total XP</div>
+            </Card>
+            <Card className="glass-card p-4 text-center">
+              <Flame className="w-8 h-8 mx-auto mb-2 text-orange-500" />
+              <div className="text-2xl font-bold text-gray-800">{profile.streak_days}</div>
+              <div className="text-sm text-gray-600">Day Streak</div>
+            </Card>
+            <Card className="glass-card p-4 text-center">
+              <BookOpen className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+              <div className="text-2xl font-bold text-gray-800">{completedLessons.length}</div>
+              <div className="text-sm text-gray-600">Lessons Done</div>
+            </Card>
+          </div>
+        )}
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 gap-4">
-              <Button
-                size="lg"
-                className="h-16 bg-gradient-to-r from-kawaii-mint to-kawaii-sky hover:from-kawaii-sky hover:to-kawaii-mint text-gray-800 font-semibold"
-                onClick={() => setCurrentMode('lesson')}
-              >
-                <BookOpen className="w-5 h-5 mr-3" />
-                Continue Lesson
-                <ArrowRight className="w-5 h-5 ml-3" />
-              </Button>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-16 border-2 border-kawaii-pink bg-kawaii-pink/20 hover:bg-kawaii-pink/30 text-gray-800 font-semibold"
-                  onClick={() => setCurrentMode('quiz')}
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Quiz
-                </Button>
-
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-16 border-2 border-kawaii-lavender bg-kawaii-lavender/20 hover:bg-kawaii-lavender/30 text-gray-800 font-semibold"
-                  onClick={() => setCurrentMode('vocabulary')}
-                >
-                  <Book className="w-5 h-5 mr-2" />
-                  Vocabulary
-                </Button>
+        {/* Daily Challenge Card */}
+        <Card className="glass-card p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Calendar className="w-12 h-12 text-kawaii-peach" />
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Daily Vocabulary Challenge</h3>
+                <p className="text-gray-600">
+                  {todaysChallenge?.is_completed 
+                    ? `Completed! ${todaysChallenge.completed_words.length}/${todaysChallenge.word_ids.length} words`
+                    : todaysChallenge 
+                    ? `${todaysChallenge.completed_words.length}/${todaysChallenge.word_ids.length} words completed`
+                    : 'Start your daily challenge!'
+                  }
+                </p>
               </div>
             </div>
-
-            {/* Today's Lesson Preview */}
-            <Card className="glass-card p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <span className="text-2xl mr-2">📚</span>
-                Today's Focus: Level {profile.current_level} Content
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-kawaii-yellow/30 rounded-lg">
-                  <span className="text-sm font-medium">Grammar Points</span>
-                  <span className="text-sm">Particles & Structure</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-kawaii-lavender/30 rounded-lg">
-                  <span className="text-sm font-medium">New Vocabulary</span>
-                  <span className="text-sm">{profile.current_level * 4} words</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-kawaii-peach/30 rounded-lg">
-                  <span className="text-sm font-medium">Practice Exercises</span>
-                  <span className="text-sm">Interactive quizzes</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Navigation */}
-            <div className="flex justify-center">
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-gray-800"
-                onClick={() => setCurrentMode('progress')}
+            <div className="flex items-center space-x-2">
+              {todaysChallenge?.is_completed && (
+                <Badge className="bg-green-100 text-green-800">Completed</Badge>
+              )}
+              <Button 
+                onClick={() => setCurrentMode('daily-challenge')}
+                className="bg-kawaii-peach hover:bg-kawaii-yellow text-gray-800"
               >
-                View Progress Tree
+                {todaysChallenge?.is_completed ? 'Review' : 'Start Challenge'}
               </Button>
             </div>
           </div>
-        );
-    }
-  };
+        </Card>
 
-  return (
-    <div className="min-h-screen p-4 max-w-md mx-auto">
-      {renderContent()}
+        {/* Learning Modes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="glass-card p-6 text-center hover:scale-105 transition-transform cursor-pointer group" onClick={() => setCurrentMode('progress')}>
+            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">📚</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">Grammar Lessons</h3>
+            <p className="text-gray-600 mb-4">Learn Japanese grammar step by step</p>
+            <Button className="w-full bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Start Learning
+            </Button>
+          </Card>
+
+          <Card className="glass-card p-6 text-center hover:scale-105 transition-transform cursor-pointer group" onClick={() => setCurrentMode('quiz')}>
+            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">🧠</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">Practice Quizzes</h3>
+            <p className="text-gray-600 mb-4">Test your knowledge with interactive quizzes</p>
+            <Button className="w-full bg-kawaii-yellow hover:bg-kawaii-peach text-gray-800">
+              <Brain className="w-4 h-4 mr-2" />
+              Take Quiz
+            </Button>
+          </Card>
+
+          <Card className="glass-card p-6 text-center hover:scale-105 transition-transform cursor-pointer group" onClick={() => setCurrentMode('vocabulary')}>
+            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">🎌</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">Vocabulary</h3>
+            <p className="text-gray-600 mb-4">Expand your Japanese vocabulary</p>
+            <Button className="w-full bg-kawaii-peach hover:bg-kawaii-lavender text-gray-800">
+              <Languages className="w-4 h-4 mr-2" />
+              Study Words
+            </Button>
+          </Card>
+
+          <Card className="glass-card p-6 text-center hover:scale-105 transition-transform cursor-pointer group" onClick={() => setCurrentMode('progress')}>
+            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">🏆</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">Progress</h3>
+            <p className="text-gray-600 mb-4">Track your learning journey</p>
+            <Button className="w-full bg-kawaii-sky hover:bg-kawaii-mint text-gray-800">
+              <Trophy className="w-4 h-4 mr-2" />
+              View Progress
+            </Button>
+          </Card>
+        </div>
+
+        {/* Level Progress */}
+        {profile && (
+          <Card className="glass-card p-6 mt-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Level {profile.current_level} Progress</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-kawaii-mint to-kawaii-sky h-full transition-all duration-300"
+                    style={{ width: `${(profile.total_xp % 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
+                {profile.total_xp % 100}/100 XP
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              {100 - (profile.total_xp % 100)} XP until Level {profile.current_level + 1}
+            </p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

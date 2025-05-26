@@ -32,7 +32,6 @@ export const useQuizzes = () => {
       if (error) {
         console.error('Error fetching quiz questions:', error);
       } else {
-        // Type assertion and proper data transformation
         const typedData = (data || []).map(question => ({
           ...question,
           question_type: question.question_type as 'multiple_choice' | 'fill_blank' | 'translation' | 'listening',
@@ -54,12 +53,26 @@ export const useQuizzes = () => {
 
   const getQuestionsByLevel = (userLevel: number) => {
     return questions.filter(q => {
-      if (!q.jlpt_level) return q.difficulty <= userLevel;
-      const levelMap = { 'N5': 1, 'N4': 2, 'N3': 3, 'N2': 4, 'N1': 5 };
-      const questionLevel = levelMap[q.jlpt_level as keyof typeof levelMap] || 1;
-      return questionLevel <= Math.min(userLevel, 2); // Cap at N4 for now
+      // Filter by difficulty matching user level
+      return q.difficulty <= userLevel;
     });
   };
 
-  return { questions, loading, getQuestionsByCategory, getQuestionsByLevel };
+  const getQuestionsByLevelAndCategory = (userLevel: number, category?: string) => {
+    let filteredQuestions = getQuestionsByLevel(userLevel);
+    
+    if (category) {
+      filteredQuestions = filteredQuestions.filter(q => q.category === category);
+    }
+    
+    return filteredQuestions;
+  };
+
+  return { 
+    questions, 
+    loading, 
+    getQuestionsByCategory, 
+    getQuestionsByLevel,
+    getQuestionsByLevelAndCategory 
+  };
 };

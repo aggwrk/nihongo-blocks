@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserProfile {
   id: string;
@@ -14,82 +14,14 @@ interface UserProfile {
 export const useUserProgress = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
-      fetchCompletedLessons();
-    } else {
-      setProfile(null);
-      setCompletedLessons([]);
-      setLoading(false);
+      updateStreakOnLogin();
     }
   }, [user]);
-
-  const calculateStreak = (lastActivityDate: string): number => {
-    const today = new Date();
-    const lastActivity = new Date(lastActivityDate);
-    const daysDiff = Math.floor((today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff === 0) {
-      // Same day - maintain current streak
-      return 1; // Will be handled properly in updateStreak
-    } else if (daysDiff === 1) {
-      // Yesterday - increment streak
-      return 1; // Will be incremented in updateStreak
-    } else {
-      // More than 1 day - reset streak
-      return 1;
-    }
-  };
-
-  const updateStreak = async () => {
-    if (!user || !profile) return;
-
-    const today = new Date().toISOString().split('T')[0];
-    const lastActivityDate = profile.last_activity_date;
-    
-    if (lastActivityDate === today) {
-      // Already updated today, no change needed
-      return;
-    }
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    let newStreak = 1;
-    
-    if (lastActivityDate === yesterdayStr) {
-      // Consecutive day - increment streak
-      newStreak = profile.streak_days + 1;
-    } else {
-      // Break in streak - reset to 1
-      newStreak = 1;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({
-          streak_days: newStreak,
-          last_activity_date: today,
-        })
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating streak:', error);
-      } else {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -101,12 +33,10 @@ export const useUserProgress = () => {
         .eq('id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching profile:', error);
-      } else if (data) {
-        setProfile(data);
       } else {
-        await createProfile();
+        setProfile(data);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -115,65 +45,79 @@ export const useUserProgress = () => {
     }
   };
 
-  const fetchCompletedLessons = async () => {
+  const updateStreakOnLogin = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_lesson_progress')
-        .select('lesson_id')
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error fetching completed lessons:', error);
-      } else {
-        setCompletedLessons(data?.map(item => item.lesson_id) || []);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const createProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data: currentProfile, error: fetchError } = await supabase
         .from('profiles')
-        .insert([
-          {
-            id: user.id,
-            username: user.user_metadata?.username || user.email?.split('@')[0],
-          },
-        ])
-        .select()
+        .select('last_activity_date, streak_days')
+        .eq('id', user.id)
         .single();
 
-      if (error) {
-        console.error('Error creating profile:', error);
+      if (fetchError) {
+        console.error('Error fetching profile for streak:', fetchError);
+        return;
+      }
+
+      const lastActivityDate = currentProfile?.last_activity_date;
+      let newStreakDays = currentProfile?.streak_days || 0;
+
+      if (lastActivityDate) {
+        const lastDate = new Date(lastActivityDate);
+        const todayDate = new Date(today);
+        const diffTime = todayDate.getTime() - lastDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          // Consecutive day - increment streak
+          newStreakDays += 1;
+        } else if (diffDays > 1) {
+          // Missed days - reset streak
+          newStreakDays = 1;
+        }
+        // If diffDays === 0, it's the same day, so keep current streak
       } else {
-        setProfile(data);
+        // First time logging in
+        newStreakDays = 1;
+      }
+
+      // Only update if it's a new day
+      if (lastActivityDate !== today) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            last_activity_date: today,
+            streak_days: newStreakDays
+          })
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Error updating streak:', updateError);
+        } else {
+          // Refetch profile to get updated data
+          fetchProfile();
+        }
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error updating streak:', error);
     }
   };
 
   const updateXP = async (xpGained: number) => {
     if (!user || !profile) return;
 
-    // Update streak when gaining XP (indicates activity)
-    await updateStreak();
+    const newTotalXP = profile.total_xp + xpGained;
+    const newLevel = Math.floor(newTotalXP / 100) + 1; // Level up every 100 XP
 
     try {
-      const newXP = profile.total_xp + xpGained;
-      const newLevel = Math.floor(newXP / 200) + 1;
-
       const { data, error } = await supabase
         .from('profiles')
         .update({
-          total_xp: newXP,
-          current_level: newLevel,
+          total_xp: newTotalXP,
+          current_level: newLevel
         })
         .eq('id', user.id)
         .select()
@@ -189,109 +133,101 @@ export const useUserProgress = () => {
     }
   };
 
-  const markLessonComplete = async (lessonId: string, score?: number) => {
+  const updateVocabularyProgress = async (wordId: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('user_lesson_progress')
-        .upsert({
-          user_id: user.id,
-          lesson_id: lessonId,
-          score,
-        });
-
-      if (error) {
-        console.error('Error marking lesson complete:', error);
-      } else {
-        setCompletedLessons(prev => [...new Set([...prev, lessonId])]);
-        await updateStreak(); // Update streak on lesson completion
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const saveQuizResult = async (quizType: string, score: number, totalQuestions: number) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_quiz_results')
-        .insert({
-          user_id: user.id,
-          quiz_type: quizType,
-          score,
-          total_questions: totalQuestions,
-        });
-
-      if (error) {
-        console.error('Error saving quiz result:', error);
-      } else {
-        const xpGained = Math.floor((score / totalQuestions) * 50);
-        await updateXP(xpGained);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const updateVocabularyProgress = async (wordId: string, masteryLevel: number = 1) => {
-    if (!user) return;
-
-    try {
-      const { data: existing } = await supabase
+      // Check if vocabulary progress exists
+      const { data: existingProgress, error: fetchError } = await supabase
         .from('user_vocabulary_progress')
         .select('*')
         .eq('user_id', user.id)
         .eq('word_id', wordId)
-        .single();
+        .maybeSingle();
 
-      if (existing) {
-        const { error } = await supabase
+      if (fetchError) {
+        console.error('Error fetching vocabulary progress:', fetchError);
+        return;
+      }
+
+      if (existingProgress) {
+        // Update existing progress
+        const { error: updateError } = await supabase
           .from('user_vocabulary_progress')
           .update({
-            mastery_level: Math.min(existing.mastery_level + 1, 5),
+            times_practiced: (existingProgress.times_practiced || 0) + 1,
             last_practiced: new Date().toISOString(),
-            times_practiced: existing.times_practiced + 1,
+            mastery_level: Math.min((existingProgress.mastery_level || 1) + 1, 5)
           })
-          .eq('user_id', user.id)
-          .eq('word_id', wordId);
+          .eq('id', existingProgress.id);
 
-        if (error) {
-          console.error('Error updating vocabulary progress:', error);
+        if (updateError) {
+          console.error('Error updating vocabulary progress:', updateError);
         }
       } else {
-        const { error } = await supabase
+        // Create new progress record
+        const { error: insertError } = await supabase
           .from('user_vocabulary_progress')
           .insert({
             user_id: user.id,
             word_id: wordId,
-            mastery_level: masteryLevel,
-            last_practiced: new Date().toISOString(),
             times_practiced: 1,
+            last_practiced: new Date().toISOString(),
+            mastery_level: 1
           });
 
-        if (error) {
-          console.error('Error creating vocabulary progress:', error);
+        if (insertError) {
+          console.error('Error creating vocabulary progress:', insertError);
         }
       }
-
-      await updateStreak(); // Update streak on vocabulary practice
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in updateVocabularyProgress:', error);
     }
   };
 
-  return { 
-    profile, 
-    completedLessons, 
-    loading, 
-    updateXP, 
-    fetchProfile, 
-    markLessonComplete,
-    saveQuizResult,
+  const markLessonCompleted = async (lessonId: string) => {
+    if (!user) return;
+
+    try {
+      // Check if lesson is already completed
+      const { data: existingProgress, error: fetchError } = await supabase
+        .from('user_lesson_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching lesson progress:', fetchError);
+        return;
+      }
+
+      if (!existingProgress) {
+        // Mark lesson as completed
+        const { error: insertError } = await supabase
+          .from('user_lesson_progress')
+          .insert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            completed_at: new Date().toISOString(),
+            score: 100
+          });
+
+        if (insertError) {
+          console.error('Error marking lesson completed:', insertError);
+        }
+      }
+    } catch (error) {
+      console.error('Error in markLessonCompleted:', error);
+    }
+  };
+
+  return {
+    profile,
+    loading,
+    updateXP,
     updateVocabularyProgress,
-    updateStreak
+    markLessonCompleted,
+    fetchProfile
   };
 };

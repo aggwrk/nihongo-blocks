@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      daily_vocabulary_challenges: {
+        Row: {
+          challenge_date: string
+          completed_words: string[] | null
+          created_at: string
+          id: string
+          is_completed: boolean | null
+          user_id: string
+          word_ids: string[]
+        }
+        Insert: {
+          challenge_date?: string
+          completed_words?: string[] | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          user_id: string
+          word_ids: string[]
+        }
+        Update: {
+          challenge_date?: string
+          completed_words?: string[] | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          user_id?: string
+          word_ids?: string[]
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           category: string
