@@ -14,8 +14,11 @@ export type Database = {
           challenge_date: string
           completed_words: string[] | null
           created_at: string
+          difficulty_level: number | null
           id: string
           is_completed: boolean | null
+          mastery_scores: Json | null
+          review_words: string[] | null
           user_id: string
           word_ids: string[]
         }
@@ -23,8 +26,11 @@ export type Database = {
           challenge_date?: string
           completed_words?: string[] | null
           created_at?: string
+          difficulty_level?: number | null
           id?: string
           is_completed?: boolean | null
+          mastery_scores?: Json | null
+          review_words?: string[] | null
           user_id: string
           word_ids: string[]
         }
@@ -32,8 +38,11 @@ export type Database = {
           challenge_date?: string
           completed_words?: string[] | null
           created_at?: string
+          difficulty_level?: number | null
           id?: string
           is_completed?: boolean | null
+          mastery_scores?: Json | null
+          review_words?: string[] | null
           user_id?: string
           word_ids?: string[]
         }

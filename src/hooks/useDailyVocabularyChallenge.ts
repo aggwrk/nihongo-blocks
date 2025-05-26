@@ -10,6 +10,9 @@ interface DailyChallenge {
   word_ids: string[];
   completed_words: string[];
   is_completed: boolean;
+  difficulty_level: number;
+  review_words: string[];
+  mastery_scores: Record<string, number>;
 }
 
 export const useDailyVocabularyChallenge = () => {
@@ -44,29 +47,7 @@ export const useDailyVocabularyChallenge = () => {
       if (existingChallenge) {
         setTodaysChallenge(existingChallenge);
       } else {
-        // Create new challenge with 10 random words
-        const shuffledWords = [...vocabulary].sort(() => Math.random() - 0.5);
-        const challengeWords = shuffledWords.slice(0, 10).map(word => word.id);
-
-        if (challengeWords.length > 0) {
-          const { data: newChallenge, error: createError } = await supabase
-            .from('daily_vocabulary_challenges')
-            .insert({
-              user_id: user.id,
-              challenge_date: today,
-              word_ids: challengeWords,
-              completed_words: [],
-              is_completed: false
-            })
-            .select()
-            .single();
-
-          if (createError) {
-            console.error('Error creating challenge:', createError);
-          } else {
-            setTodaysChallenge(newChallenge);
-          }
-        }
+        await createNewChallenge(user.id, today);
       }
     } catch (error) {
       console.error('Error in generateOrGetTodaysChallenge:', error);
@@ -75,17 +56,144 @@ export const useDailyVocabularyChallenge = () => {
     }
   };
 
-  const markWordCompleted = async (wordId: string) => {
+  const createNewChallenge = async (userId: string, today: string) => {
+    try {
+      // Get previous challenges to find review words
+      const { data: previousChallenges } = await supabase
+        .from('daily_vocabulary_challenges')
+        .select('*')
+        .eq('user_id', userId)
+        .order('challenge_date', { ascending: false })
+        .limit(7);
+
+      // Determine user's current difficulty level based on recent performance
+      const difficultyLevel = calculateDifficultyLevel(previousChallenges || []);
+      
+      // Get vocabulary words based on difficulty level
+      const availableWords = getWordsForLevel(difficultyLevel);
+      
+      // Select review words from previous challenges (words that need reinforcement)
+      const reviewWords = getReviewWords(previousChallenges || []);
+      
+      // Create a mix of new words and review words
+      const newWords = getNewWords(availableWords, previousChallenges || [], 6);
+      const allChallengeWords = [...reviewWords.slice(0, 4), ...newWords];
+      
+      if (allChallengeWords.length > 0) {
+        const { data: newChallenge, error: createError } = await supabase
+          .from('daily_vocabulary_challenges')
+          .insert({
+            user_id: userId,
+            challenge_date: today,
+            word_ids: allChallengeWords,
+            completed_words: [],
+            is_completed: false,
+            difficulty_level: difficultyLevel,
+            review_words: reviewWords,
+            mastery_scores: {}
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating challenge:', createError);
+        } else {
+          setTodaysChallenge(newChallenge);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating new challenge:', error);
+    }
+  };
+
+  const calculateDifficultyLevel = (previousChallenges: any[]): number => {
+    if (previousChallenges.length === 0) return 1;
+    
+    // Calculate average completion rate over last 5 challenges
+    const recentChallenges = previousChallenges.slice(0, 5);
+    const completionRates = recentChallenges.map(challenge => 
+      challenge.completed_words.length / challenge.word_ids.length
+    );
+    
+    const avgCompletion = completionRates.reduce((a, b) => a + b, 0) / completionRates.length;
+    
+    // Adjust difficulty based on performance
+    if (avgCompletion >= 0.9) return Math.min(3, (previousChallenges[0]?.difficulty_level || 1) + 1);
+    if (avgCompletion >= 0.7) return previousChallenges[0]?.difficulty_level || 1;
+    return Math.max(1, (previousChallenges[0]?.difficulty_level || 1) - 1);
+  };
+
+  const getWordsForLevel = (difficultyLevel: number): any[] => {
+    switch (difficultyLevel) {
+      case 1:
+        return vocabulary.filter(word => word.jlpt_level === 'N5');
+      case 2:
+        return vocabulary.filter(word => ['N5', 'N4'].includes(word.jlpt_level));
+      case 3:
+      default:
+        return vocabulary.filter(word => ['N5', 'N4', 'N3'].includes(word.jlpt_level));
+    }
+  };
+
+  const getReviewWords = (previousChallenges: any[]): string[] => {
+    const reviewWords: string[] = [];
+    
+    // Find words that were answered incorrectly or need reinforcement
+    previousChallenges.forEach(challenge => {
+      if (challenge.mastery_scores) {
+        Object.entries(challenge.mastery_scores).forEach(([wordId, score]) => {
+          if (typeof score === 'number' && score < 0.7 && !reviewWords.includes(wordId)) {
+            reviewWords.push(wordId);
+          }
+        });
+      }
+      
+      // Also include incomplete words from recent challenges
+      const incompleteWords = challenge.word_ids.filter(
+        (wordId: string) => !challenge.completed_words.includes(wordId)
+      );
+      incompleteWords.forEach((wordId: string) => {
+        if (!reviewWords.includes(wordId)) {
+          reviewWords.push(wordId);
+        }
+      });
+    });
+    
+    return reviewWords;
+  };
+
+  const getNewWords = (availableWords: any[], previousChallenges: any[], count: number): string[] => {
+    // Get words that haven't been used recently
+    const recentlyUsedWords = new Set<string>();
+    previousChallenges.slice(0, 3).forEach(challenge => {
+      challenge.word_ids.forEach((wordId: string) => recentlyUsedWords.add(wordId));
+    });
+    
+    const newWords = availableWords
+      .filter(word => !recentlyUsedWords.has(word.id))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, count)
+      .map(word => word.id);
+    
+    return newWords;
+  };
+
+  const markWordCompleted = async (wordId: string, masteryScore: number = 1) => {
     if (!todaysChallenge) return;
 
     const updatedCompletedWords = [...todaysChallenge.completed_words, wordId];
+    const updatedMasteryScores = {
+      ...todaysChallenge.mastery_scores,
+      [wordId]: masteryScore
+    };
     const isCompleted = updatedCompletedWords.length === todaysChallenge.word_ids.length;
 
     const { data, error } = await supabase
       .from('daily_vocabulary_challenges')
       .update({
         completed_words: updatedCompletedWords,
-        is_completed: isCompleted
+        is_completed: isCompleted,
+        mastery_scores: updatedMasteryScores
       })
       .eq('id', todaysChallenge.id)
       .select()
@@ -98,10 +206,21 @@ export const useDailyVocabularyChallenge = () => {
     }
   };
 
+  const getChallengeProgress = () => {
+    if (!todaysChallenge) return { completed: 0, total: 0, percentage: 0 };
+    
+    const completed = todaysChallenge.completed_words.length;
+    const total = todaysChallenge.word_ids.length;
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+    
+    return { completed, total, percentage };
+  };
+
   return {
     todaysChallenge,
     loading,
     markWordCompleted,
-    generateOrGetTodaysChallenge
+    generateOrGetTodaysChallenge,
+    getChallengeProgress
   };
 };

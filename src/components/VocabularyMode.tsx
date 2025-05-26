@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Filter } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useUserProgress } from '@/hooks/useUserProgress';
 import { useComprehensiveVocabulary } from '@/hooks/useComprehensiveVocabulary';
-import VocabularyCard from './VocabularyCard';
+import EnhancedVocabularyCard from './EnhancedVocabularyCard';
 
 interface VocabularyModeProps {
   onComplete: () => void;
@@ -14,31 +15,49 @@ interface VocabularyModeProps {
 
 const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
   const [currentWord, setCurrentWord] = useState(0);
+  const [selectedLevel, setSelectedLevel] = useState<string>('N5');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { profile, updateXP, updateVocabularyProgress } = useUserProgress();
-  const { getVocabularyByLevel, loading } = useComprehensiveVocabulary();
+  const { vocabulary, loading } = useComprehensiveVocabulary();
 
-  // Get vocabulary based on user's level (N5 for levels 1-2, N4 for levels 3-5)
-  const userLevel = profile?.current_level || 1;
-  const jlptLevel = userLevel <= 2 ? 1 : 2; // N5 = 1, N4 = 2
-  const availableWords = getVocabularyByLevel(jlptLevel);
+  // Filter vocabulary based on selections
+  const filteredVocabulary = vocabulary.filter(word => {
+    if (selectedLevel !== 'all' && word.jlpt_level !== selectedLevel) return false;
+    if (selectedCategory !== 'all' && word.category !== selectedCategory) return false;
+    return true;
+  });
 
-  const progress = availableWords.length > 0 ? ((currentWord + 1) / availableWords.length) * 100 : 0;
+  // Get unique categories for filter
+  const categories = Array.from(new Set(vocabulary.map(word => word.category).filter(Boolean)));
+  const levels = ['N5', 'N4', 'N3'];
+
+  const progress = filteredVocabulary.length > 0 ? ((currentWord + 1) / filteredVocabulary.length) * 100 : 0;
 
   const handleNext = async () => {
-    const currentWordData = availableWords[currentWord];
+    const currentWordData = filteredVocabulary[currentWord];
     
     // Update vocabulary progress
     if (currentWordData) {
       await updateVocabularyProgress(currentWordData.id);
     }
 
-    if (currentWord < availableWords.length - 1) {
+    if (currentWord < filteredVocabulary.length - 1) {
       setCurrentWord(currentWord + 1);
     } else {
       // Award XP for completing vocabulary practice
       await updateXP(25);
       onComplete();
     }
+  };
+
+  const handleLevelChange = (level: string) => {
+    setSelectedLevel(level);
+    setCurrentWord(0);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentWord(0);
   };
 
   if (loading) {
@@ -59,7 +78,7 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
     );
   }
 
-  if (availableWords.length === 0) {
+  if (filteredVocabulary.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -76,13 +95,13 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
         <Card className="glass-card p-6 text-center">
           <div className="text-4xl mb-4">📚</div>
           <h3 className="text-lg font-semibold mb-2">No vocabulary available</h3>
-          <p className="text-gray-600">Complete more lessons to unlock vocabulary!</p>
+          <p className="text-gray-600">Try selecting a different level or category!</p>
         </Card>
       </div>
     );
   }
 
-  const currentWordData = availableWords[currentWord];
+  const currentWordData = filteredVocabulary[currentWord];
 
   return (
     <div className="space-y-6">
@@ -95,38 +114,87 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
         <div className="text-center">
           <h2 className="text-lg font-semibold flex items-center">
             <BookOpen className="w-4 h-4 mr-2" />
-            Vocabulary - {currentWordData.jlpt_level}
+            Vocabulary Study
           </h2>
-          <p className="text-sm text-gray-600">Word {currentWord + 1} of {availableWords.length}</p>
+          <p className="text-sm text-gray-600">Word {currentWord + 1} of {filteredVocabulary.length}</p>
         </div>
         <div className="w-16" />
       </div>
+
+      {/* Filters */}
+      <Card className="glass-card p-4">
+        <div className="flex items-center space-x-4 mb-3">
+          <Filter className="w-4 h-4 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Filters:</span>
+        </div>
+        
+        <div className="space-y-3">
+          {/* Level Filter */}
+          <div>
+            <div className="text-xs text-gray-600 mb-2">JLPT Level:</div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedLevel === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleLevelChange('all')}
+              >
+                All Levels
+              </Button>
+              {levels.map(level => (
+                <Button
+                  key={level}
+                  variant={selectedLevel === level ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleLevelChange(level)}
+                >
+                  {level}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div>
+            <div className="text-xs text-gray-600 mb-2">Category:</div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleCategoryChange('all')}
+              >
+                All Categories
+              </Button>
+              {categories.slice(0, 6).map(category => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleCategoryChange(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Progress */}
       <Progress value={progress} className="h-2" />
 
       {/* Vocabulary Card */}
-      <VocabularyCard
-        word={{
-          japanese: currentWordData.japanese,
-          hiragana: currentWordData.hiragana,
-          romaji: currentWordData.romaji,
-          english: currentWordData.english,
-          type: currentWordData.word_type,
-          example: currentWordData.example_japanese ? {
-            japanese: currentWordData.example_japanese,
-            romaji: currentWordData.example_romaji || '',
-            english: currentWordData.example_english || ''
-          } : undefined
-        }}
-        onNext={handleNext}
+      <EnhancedVocabularyCard
+        word={currentWordData}
+        onComplete={handleNext}
+        showExample={true}
       />
 
-      {/* Category and Level Info */}
+      {/* Word Info */}
       <Card className="glass-card p-4 text-center">
         <div className="flex justify-between items-center text-sm text-gray-600">
+          <Badge variant="outline">{currentWordData.jlpt_level}</Badge>
           <span>Category: {currentWordData.category || 'General'}</span>
-          <span>Level: {currentWordData.jlpt_level}</span>
+          <Badge variant="outline">{currentWordData.word_type}</Badge>
         </div>
         <p className="text-xs text-gray-500 mt-2">
           💡 Tap the card to flip between Japanese and English!
