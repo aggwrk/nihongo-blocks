@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useComprehensiveVocabulary } from './useComprehensiveVocabulary';
+import type { Json } from '@/integrations/supabase/types';
 
 interface DailyChallenge {
   id: string;
@@ -14,6 +14,36 @@ interface DailyChallenge {
   review_words: string[];
   mastery_scores: Record<string, number>;
 }
+
+// Helper function to safely convert Json to Record<string, number>
+const convertMasteryScores = (scores: Json | null): Record<string, number> => {
+  if (!scores || typeof scores !== 'object' || Array.isArray(scores)) {
+    return {};
+  }
+  
+  const result: Record<string, number> = {};
+  for (const [key, value] of Object.entries(scores)) {
+    if (typeof value === 'number') {
+      result[key] = value;
+    }
+  }
+  return result;
+};
+
+// Helper function to convert DailyChallenge data from Supabase
+const convertSupabaseChallenge = (data: any): DailyChallenge => {
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    challenge_date: data.challenge_date,
+    word_ids: data.word_ids || [],
+    completed_words: data.completed_words || [],
+    is_completed: data.is_completed || false,
+    difficulty_level: data.difficulty_level || 1,
+    review_words: data.review_words || [],
+    mastery_scores: convertMasteryScores(data.mastery_scores)
+  };
+};
 
 export const useDailyVocabularyChallenge = () => {
   const [todaysChallenge, setTodaysChallenge] = useState<DailyChallenge | null>(null);
@@ -45,7 +75,7 @@ export const useDailyVocabularyChallenge = () => {
       }
 
       if (existingChallenge) {
-        setTodaysChallenge(existingChallenge);
+        setTodaysChallenge(convertSupabaseChallenge(existingChallenge));
       } else {
         await createNewChallenge(user.id, today);
       }
@@ -98,7 +128,7 @@ export const useDailyVocabularyChallenge = () => {
         if (createError) {
           console.error('Error creating challenge:', createError);
         } else {
-          setTodaysChallenge(newChallenge);
+          setTodaysChallenge(convertSupabaseChallenge(newChallenge));
         }
       }
     } catch (error) {
@@ -140,13 +170,12 @@ export const useDailyVocabularyChallenge = () => {
     
     // Find words that were answered incorrectly or need reinforcement
     previousChallenges.forEach(challenge => {
-      if (challenge.mastery_scores) {
-        Object.entries(challenge.mastery_scores).forEach(([wordId, score]) => {
-          if (typeof score === 'number' && score < 0.7 && !reviewWords.includes(wordId)) {
-            reviewWords.push(wordId);
-          }
-        });
-      }
+      const masteryScores = convertMasteryScores(challenge.mastery_scores);
+      Object.entries(masteryScores).forEach(([wordId, score]) => {
+        if (score < 0.7 && !reviewWords.includes(wordId)) {
+          reviewWords.push(wordId);
+        }
+      });
       
       // Also include incomplete words from recent challenges
       const incompleteWords = challenge.word_ids.filter(
@@ -202,7 +231,7 @@ export const useDailyVocabularyChallenge = () => {
     if (error) {
       console.error('Error updating challenge:', error);
     } else {
-      setTodaysChallenge(data);
+      setTodaysChallenge(convertSupabaseChallenge(data));
     }
   };
 
