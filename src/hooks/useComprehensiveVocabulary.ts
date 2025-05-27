@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { n5Vocabulary, n4Vocabulary } from '@/data/comprehensiveVocabulary';
+import { n5Vocabulary, n4Vocabulary, n3Vocabulary } from '@/data/comprehensiveVocabulary';
 
 interface VocabularyWord {
   id: string;
@@ -18,7 +18,7 @@ interface VocabularyWord {
 
 export const useComprehensiveVocabulary = () => {
   const [vocabulary, setVocabulary] = useState<VocabularyWord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start false for immediate loading
 
   useEffect(() => {
     loadVocabulary();
@@ -37,14 +37,19 @@ export const useComprehensiveVocabulary = () => {
           ...word, 
           jlpt_level: 'N4',
           word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+        })),
+        ...n3Vocabulary.map(word => ({ 
+          ...word, 
+          jlpt_level: 'N3',
+          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
         }))
       ];
 
       // Set local data first for immediate use
       setVocabulary(localVocabulary);
-      setLoading(false);
 
       // Then try to enhance with database data in the background
+      setLoading(true);
       try {
         const { data: dbVocabulary, error } = await supabase
           .from('vocabulary_words')
@@ -71,6 +76,8 @@ export const useComprehensiveVocabulary = () => {
       } catch (dbError) {
         console.log('Database vocabulary unavailable, using local data only');
         // Keep using local vocabulary if database fails
+      } finally {
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error loading vocabulary:', error);
@@ -92,11 +99,22 @@ export const useComprehensiveVocabulary = () => {
     return vocabulary.filter(word => word.category === category);
   };
 
+  const getVocabularyByLevelAndCategory = (level: string, category?: string) => {
+    let filteredWords = vocabulary.filter(word => word.jlpt_level === level);
+    
+    if (category && category !== 'all') {
+      filteredWords = filteredWords.filter(word => word.category === category);
+    }
+    
+    return filteredWords;
+  };
+
   return { 
     vocabulary, 
     loading, 
     getVocabularyByLevel, 
     getVocabularyByCategory,
+    getVocabularyByLevelAndCategory,
     loadVocabulary 
   };
 };

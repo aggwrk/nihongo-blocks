@@ -13,7 +13,7 @@ interface ExpandedQuizModeProps {
 
 const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
   const { profile, updateXP } = useUserProgress();
-  const { getQuestionsByLevel, loading } = useQuizzes();
+  const { getQuestionsByLevelAndCategory, loading } = useQuizzes();
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
@@ -23,12 +23,12 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
 
   useEffect(() => {
     if (profile && !loading) {
-      const levelQuestions = getQuestionsByLevel(profile.current_level);
+      const levelQuestions = getQuestionsByLevelAndCategory(profile.current_level);
       // Shuffle and take 5 questions
       const shuffled = levelQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
       setQuestions(shuffled);
     }
-  }, [profile, loading]);
+  }, [profile, loading, getQuestionsByLevelAndCategory]);
 
   if (loading || questions.length === 0) {
     return (

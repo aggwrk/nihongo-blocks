@@ -18,17 +18,21 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
   const [selectedLevel, setSelectedLevel] = useState<string>('N5');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { profile, updateXP, updateVocabularyProgress } = useUserProgress();
-  const { vocabulary, loading } = useComprehensiveVocabulary();
+  const { vocabulary, loading, getVocabularyByLevelAndCategory } = useComprehensiveVocabulary();
 
   // Filter vocabulary based on selections
-  const filteredVocabulary = vocabulary.filter(word => {
-    if (selectedLevel !== 'all' && word.jlpt_level !== selectedLevel) return false;
-    if (selectedCategory !== 'all' && word.category !== selectedCategory) return false;
-    return true;
-  });
+  const filteredVocabulary = getVocabularyByLevelAndCategory(selectedLevel, selectedCategory);
 
-  // Get unique categories for filter
-  const categories = Array.from(new Set(vocabulary.map(word => word.category).filter(Boolean)));
+  // Get unique categories for the selected level
+  const availableCategories = Array.from(
+    new Set(
+      vocabulary
+        .filter(word => word.jlpt_level === selectedLevel)
+        .map(word => word.category)
+        .filter(Boolean)
+    )
+  );
+
   const levels = ['N5', 'N4', 'N3'];
 
   const progress = filteredVocabulary.length > 0 ? ((currentWord + 1) / filteredVocabulary.length) * 100 : 0;
@@ -52,6 +56,7 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
 
   const handleLevelChange = (level: string) => {
     setSelectedLevel(level);
+    setSelectedCategory('all');
     setCurrentWord(0);
   };
 
@@ -133,13 +138,6 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
           <div>
             <div className="text-xs text-gray-600 mb-2">JLPT Level:</div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedLevel === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleLevelChange('all')}
-              >
-                All Levels
-              </Button>
               {levels.map(level => (
                 <Button
                   key={level}
@@ -164,7 +162,7 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
               >
                 All Categories
               </Button>
-              {categories.slice(0, 6).map(category => (
+              {availableCategories.slice(0, 6).map(category => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? 'default' : 'outline'}

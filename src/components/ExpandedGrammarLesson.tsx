@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,10 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, CheckCircle, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { expandedLessonData } from '@/data/expandedLessonData';
+import { useUserProgress } from '@/hooks/useUserProgress';
 
 interface ExpandedGrammarLessonProps {
   onComplete: () => void;
   lessonId?: string;
+  userLevel?: number;
 }
 
 interface LessonContent {
@@ -25,14 +28,15 @@ interface LessonContent {
   }>;
 }
 
-const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonProps) => {
+const ExpandedGrammarLesson = ({ onComplete, lessonId, userLevel }: ExpandedGrammarLessonProps) => {
   const [currentSection, setCurrentSection] = useState(0);
   const [lessonContent, setLessonContent] = useState<LessonContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const { profile, updateXP } = useUserProgress();
 
   useEffect(() => {
     loadLessonContent();
-  }, [lessonId]);
+  }, [lessonId, userLevel]);
 
   const transformStaticLessonToSections = (staticLesson: any): LessonContent => {
     // Transform the old 'steps' format to new 'sections' format
@@ -54,16 +58,82 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
     return staticLesson;
   };
 
-  const loadLessonContent = async () => {
-    if (!lessonId) {
-      // Default lesson if no ID provided
-      const defaultLesson = expandedLessonData['particles-intro'];
-      setLessonContent(transformStaticLessonToSections(defaultLesson));
-      setLoading(false);
-      return;
-    }
+  const getLessonsByLevel = (level: number) => {
+    const levelLessons: { [key: string]: any } = {
+      1: {
+        'particles-intro': expandedLessonData['particles-intro'],
+        'basic-structure': {
+          title: 'Basic Sentence Structure',
+          description: 'Learn the fundamental structure of Japanese sentences',
+          steps: [
+            {
+              title: 'Subject + Particle + Object + Verb',
+              explanation: 'Japanese follows a specific word order that is different from English.',
+              example: {
+                japanese: '私は本を読みます。',
+                romaji: 'Watashi wa hon wo yomimasu.',
+                english: 'I read a book.'
+              },
+              tip: 'The verb always comes at the end in Japanese!'
+            }
+          ]
+        }
+      },
+      2: {
+        'wa-vs-ga': {
+          title: 'は vs が (Topic vs Subject)',
+          description: 'Master the difference between wa and ga particles',
+          steps: [
+            {
+              title: 'Understanding the difference',
+              explanation: 'は marks the topic of conversation, が marks the grammatical subject.',
+              example: {
+                japanese: '私は学生です。学生が勉強します。',
+                romaji: 'Watashi wa gakusei desu. Gakusei ga benkyou shimasu.',
+                english: 'I am a student. Students study.'
+              },
+              tip: 'Use は for general statements, が for specific actions!'
+            }
+          ]
+        }
+      },
+      3: {
+        'adjectives-i-na': {
+          title: 'い and な Adjectives',
+          description: 'Learn the two types of adjectives in Japanese',
+          steps: [
+            {
+              title: 'Two adjective types',
+              explanation: 'い-adjectives end in い, な-adjectives need な before nouns.',
+              example: {
+                japanese: '大きい車、きれいな花',
+                romaji: 'Ookii kuruma, kirei na hana',
+                english: 'Big car, beautiful flower'
+              },
+              tip: 'い-adjectives conjugate, な-adjectives stay the same!'
+            }
+          ]
+        }
+      }
+    };
 
+    return levelLessons[level] || levelLessons[1];
+  };
+
+  const loadLessonContent = async () => {
     try {
+      const currentLevel = userLevel || profile?.current_level || 1;
+      
+      if (!lessonId) {
+        // If no specific lesson, get appropriate lesson for user level
+        const levelLessons = getLessonsByLevel(currentLevel);
+        const firstLessonKey = Object.keys(levelLessons)[0];
+        const defaultLesson = levelLessons[firstLessonKey];
+        setLessonContent(transformStaticLessonToSections(defaultLesson));
+        setLoading(false);
+        return;
+      }
+
       // First try to get from database
       const { data: dbLesson, error } = await supabase
         .from('lessons')
@@ -76,14 +146,12 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
         let sections: LessonContent['sections'] = [];
         
         if (Array.isArray(dbLesson.content)) {
-          // Try to cast the Json content to our expected structure
           sections = (dbLesson.content as any[]).map((section: any) => ({
             type: section.type || 'text',
             content: section.content || section.toString(),
             examples: section.examples || undefined
           }));
         } else {
-          // Fallback for non-array content
           sections = [{
             type: 'text',
             content: dbLesson.description
@@ -97,19 +165,21 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
         };
         setLessonContent(content);
       } else {
-        // Fallback to static lessons
-        const staticLesson = expandedLessonData[lessonId];
+        // Fallback to appropriate lesson for user level
+        const levelLessons = getLessonsByLevel(currentLevel);
+        const staticLesson = levelLessons[lessonId] || expandedLessonData[lessonId];
+        
         if (staticLesson) {
           setLessonContent(transformStaticLessonToSections(staticLesson));
         } else {
           // Create a basic lesson structure for unknown lessons
           setLessonContent({
-            title: `Lesson: ${lessonId}`,
-            description: 'This lesson content is being prepared.',
+            title: `Grammar Lesson: Level ${currentLevel}`,
+            description: 'Learn Japanese grammar step by step according to your level.',
             sections: [
               {
                 type: 'text',
-                content: 'This lesson is currently under development. Please check back later for complete content!'
+                content: `Welcome to Level ${currentLevel} grammar! This lesson will help you understand important grammar concepts for your current level.`
               }
             ]
           });
@@ -117,22 +187,17 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
       }
     } catch (error) {
       console.error('Error loading lesson:', error);
-      // Fallback to static lesson or create basic structure
-      const staticLesson = expandedLessonData[lessonId || 'particles-intro'];
-      if (staticLesson) {
-        setLessonContent(transformStaticLessonToSections(staticLesson));
-      } else {
-        setLessonContent({
-          title: 'Grammar Lesson',
-          description: 'Learn Japanese grammar step by step',
-          sections: [
-            {
-              type: 'text',
-              content: 'Welcome to this grammar lesson! Let\'s start learning together.'
-            }
-          ]
-        });
-      }
+      // Fallback lesson
+      setLessonContent({
+        title: 'Grammar Lesson',
+        description: 'Learn Japanese grammar step by step',
+        sections: [
+          {
+            type: 'text',
+            content: 'Welcome to this grammar lesson! Let\'s start learning together.'
+          }
+        ]
+      });
     } finally {
       setLoading(false);
     }
@@ -185,10 +250,12 @@ const ExpandedGrammarLesson = ({ onComplete, lessonId }: ExpandedGrammarLessonPr
   const currentSectionData = lessonContent.sections[currentSection];
   const progress = ((currentSection + 1) / lessonContent.sections.length) * 100;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentSection < lessonContent.sections.length - 1) {
       setCurrentSection(currentSection + 1);
     } else {
+      // Award XP for completing lesson
+      await updateXP(50);
       onComplete();
     }
   };
