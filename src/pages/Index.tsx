@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BookOpen, Brain, Languages, Trophy, Calendar, Flame, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgress } from '@/hooks/useUserProgress';
@@ -16,15 +17,18 @@ import ProgressTree from '@/components/ProgressTree';
 
 const Index = () => {
   const { user } = useAuth();
-  const { profile, loading } = useUserProgress();
-  const { todaysChallenge } = useDailyVocabularyChallenge();
+  const { profile, loading: profileLoading } = useUserProgress();
+  const { todaysChallenge, loading: challengeLoading } = useDailyVocabularyChallenge();
   const [currentMode, setCurrentMode] = useState<'home' | 'lesson' | 'quiz' | 'vocabulary' | 'daily-challenge' | 'progress'>('home');
   const [selectedLessonId, setSelectedLessonId] = useState<string>('');
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [lessonsLoading, setLessonsLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchCompletedLessons();
+    } else {
+      setLessonsLoading(false);
     }
   }, [user]);
 
@@ -44,6 +48,8 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setLessonsLoading(false);
     }
   };
 
@@ -57,13 +63,8 @@ const Index = () => {
     fetchCompletedLessons(); // Refresh completed lessons
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
-  }
+  // Show loading skeleton only for profile, not everything
+  const isInitialLoading = profileLoading && !profile;
 
   if (currentMode === 'lesson') {
     return (
@@ -135,30 +136,57 @@ const Index = () => {
         </div>
 
         {/* User Stats */}
-        {profile && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <Card className="glass-card p-4 text-center">
-              <Target className="w-8 h-8 mx-auto mb-2 text-kawaii-mint" />
-              <div className="text-2xl font-bold text-gray-800">{profile.current_level}</div>
-              <div className="text-sm text-gray-600">Level</div>
-            </Card>
-            <Card className="glass-card p-4 text-center">
-              <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
-              <div className="text-2xl font-bold text-gray-800">{profile.total_xp}</div>
-              <div className="text-sm text-gray-600">Total XP</div>
-            </Card>
-            <Card className="glass-card p-4 text-center">
-              <Flame className="w-8 h-8 mx-auto mb-2 text-orange-500" />
-              <div className="text-2xl font-bold text-gray-800">{profile.streak_days}</div>
-              <div className="text-sm text-gray-600">Day Streak</div>
-            </Card>
-            <Card className="glass-card p-4 text-center">
-              <BookOpen className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-              <div className="text-2xl font-bold text-gray-800">{completedLessons.length}</div>
-              <div className="text-sm text-gray-600">Lessons Done</div>
-            </Card>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {isInitialLoading ? (
+            <>
+              <Card className="glass-card p-4 text-center">
+                <Skeleton className="w-8 h-8 mx-auto mb-2" />
+                <Skeleton className="h-6 w-8 mx-auto mb-1" />
+                <Skeleton className="h-4 w-12 mx-auto" />
+              </Card>
+              <Card className="glass-card p-4 text-center">
+                <Skeleton className="w-8 h-8 mx-auto mb-2" />
+                <Skeleton className="h-6 w-8 mx-auto mb-1" />
+                <Skeleton className="h-4 w-12 mx-auto" />
+              </Card>
+              <Card className="glass-card p-4 text-center">
+                <Skeleton className="w-8 h-8 mx-auto mb-2" />
+                <Skeleton className="h-6 w-8 mx-auto mb-1" />
+                <Skeleton className="h-4 w-12 mx-auto" />
+              </Card>
+              <Card className="glass-card p-4 text-center">
+                <Skeleton className="w-8 h-8 mx-auto mb-2" />
+                <Skeleton className="h-6 w-8 mx-auto mb-1" />
+                <Skeleton className="h-4 w-12 mx-auto" />
+              </Card>
+            </>
+          ) : profile ? (
+            <>
+              <Card className="glass-card p-4 text-center">
+                <Target className="w-8 h-8 mx-auto mb-2 text-kawaii-mint" />
+                <div className="text-2xl font-bold text-gray-800">{profile.current_level}</div>
+                <div className="text-sm text-gray-600">Level</div>
+              </Card>
+              <Card className="glass-card p-4 text-center">
+                <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+                <div className="text-2xl font-bold text-gray-800">{profile.total_xp}</div>
+                <div className="text-sm text-gray-600">Total XP</div>
+              </Card>
+              <Card className="glass-card p-4 text-center">
+                <Flame className="w-8 h-8 mx-auto mb-2 text-orange-500" />
+                <div className="text-2xl font-bold text-gray-800">{profile.streak_days}</div>
+                <div className="text-sm text-gray-600">Day Streak</div>
+              </Card>
+              <Card className="glass-card p-4 text-center">
+                <BookOpen className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                <div className="text-2xl font-bold text-gray-800">
+                  {lessonsLoading ? <Skeleton className="h-6 w-6 mx-auto" /> : completedLessons.length}
+                </div>
+                <div className="text-sm text-gray-600">Lessons Done</div>
+              </Card>
+            </>
+          ) : null}
+        </div>
 
         {/* Daily Challenge Card */}
         <Card className="glass-card p-6 mb-8">
@@ -167,14 +195,18 @@ const Index = () => {
               <Calendar className="w-12 h-12 text-kawaii-peach" />
               <div>
                 <h3 className="text-xl font-bold text-gray-800">Daily Vocabulary Challenge</h3>
-                <p className="text-gray-600">
-                  {todaysChallenge?.is_completed 
-                    ? `Completed! ${todaysChallenge.completed_words.length}/${todaysChallenge.word_ids.length} words`
-                    : todaysChallenge 
-                    ? `${todaysChallenge.completed_words.length}/${todaysChallenge.word_ids.length} words completed`
-                    : 'Start your daily challenge!'
-                  }
-                </p>
+                {challengeLoading ? (
+                  <Skeleton className="h-4 w-48 mt-1" />
+                ) : (
+                  <p className="text-gray-600">
+                    {todaysChallenge?.is_completed 
+                      ? `Completed! ${todaysChallenge.completed_words.length}/${todaysChallenge.word_ids.length} words`
+                      : todaysChallenge 
+                      ? `${todaysChallenge.completed_words.length}/${todaysChallenge.word_ids.length} words completed`
+                      : 'Start your daily challenge!'
+                    }
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -184,6 +216,7 @@ const Index = () => {
               <Button 
                 onClick={() => setCurrentMode('daily-challenge')}
                 className="bg-kawaii-peach hover:bg-kawaii-yellow text-gray-800"
+                disabled={challengeLoading}
               >
                 {todaysChallenge?.is_completed ? 'Review' : 'Start Challenge'}
               </Button>

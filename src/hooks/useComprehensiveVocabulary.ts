@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { n5Vocabulary, n4Vocabulary } from '@/data/comprehensiveVocabulary';
@@ -27,43 +26,7 @@ export const useComprehensiveVocabulary = () => {
 
   const loadVocabulary = async () => {
     try {
-      // First try to load from database
-      const { data: dbVocabulary, error } = await supabase
-        .from('vocabulary_words')
-        .select('*')
-        .order('jlpt_level', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching vocabulary from database:', error);
-      }
-
-      // Combine database vocabulary with local data
-      const allVocabulary = [
-        ...(dbVocabulary || []).map(word => ({
-          ...word,
-          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
-        })),
-        ...n5Vocabulary.map(word => ({ 
-          ...word, 
-          jlpt_level: 'N5',
-          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
-        })),
-        ...n4Vocabulary.map(word => ({ 
-          ...word, 
-          jlpt_level: 'N4',
-          word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
-        }))
-      ];
-
-      // Remove duplicates based on ID
-      const uniqueVocabulary = allVocabulary.filter((word, index, self) => 
-        index === self.findIndex(w => w.id === word.id)
-      );
-
-      setVocabulary(uniqueVocabulary);
-    } catch (error) {
-      console.error('Error loading vocabulary:', error);
-      // Fallback to local data only
+      // Start with local data immediately for faster initial load
       const localVocabulary = [
         ...n5Vocabulary.map(word => ({ 
           ...word, 
@@ -76,8 +39,43 @@ export const useComprehensiveVocabulary = () => {
           word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
         }))
       ];
+
+      // Set local data first for immediate use
       setVocabulary(localVocabulary);
-    } finally {
+      setLoading(false);
+
+      // Then try to enhance with database data in the background
+      try {
+        const { data: dbVocabulary, error } = await supabase
+          .from('vocabulary_words')
+          .select('*')
+          .order('jlpt_level', { ascending: true });
+
+        if (!error && dbVocabulary) {
+          // Combine database vocabulary with local data
+          const allVocabulary = [
+            ...dbVocabulary.map(word => ({
+              ...word,
+              word_type: word.word_type as 'noun' | 'verb' | 'adjective' | 'adverb' | 'particle' | 'expression'
+            })),
+            ...localVocabulary
+          ];
+
+          // Remove duplicates based on ID
+          const uniqueVocabulary = allVocabulary.filter((word, index, self) => 
+            index === self.findIndex(w => w.id === word.id)
+          );
+
+          setVocabulary(uniqueVocabulary);
+        }
+      } catch (dbError) {
+        console.log('Database vocabulary unavailable, using local data only');
+        // Keep using local vocabulary if database fails
+      }
+    } catch (error) {
+      console.error('Error loading vocabulary:', error);
+      // Fallback to empty array if everything fails
+      setVocabulary([]);
       setLoading(false);
     }
   };

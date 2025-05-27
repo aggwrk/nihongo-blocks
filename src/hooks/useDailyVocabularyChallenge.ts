@@ -7,17 +7,26 @@ import type { DailyChallenge } from '@/types/dailyChallenge';
 
 export const useDailyVocabularyChallenge = () => {
   const [todaysChallenge, setTodaysChallenge] = useState<DailyChallenge | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { vocabulary } = useComprehensiveVocabulary();
+  const [loading, setLoading] = useState(false); // Start with false for faster initial render
+  const { vocabulary, loading: vocabularyLoading } = useComprehensiveVocabulary();
 
   useEffect(() => {
-    generateOrGetTodaysChallenge();
-  }, [vocabulary]);
+    // Only generate challenge if vocabulary is loaded and we don't have a challenge yet
+    if (!vocabularyLoading && vocabulary.length > 0 && !todaysChallenge) {
+      generateOrGetTodaysChallenge();
+    }
+  }, [vocabularyLoading, vocabulary.length, todaysChallenge]);
 
   const generateOrGetTodaysChallenge = async () => {
+    if (loading) return; // Prevent duplicate calls
+    
+    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const today = new Date().toISOString().split('T')[0];
 
@@ -26,7 +35,7 @@ export const useDailyVocabularyChallenge = () => {
 
       if (existingChallenge) {
         setTodaysChallenge(existingChallenge);
-      } else {
+      } else if (vocabulary.length > 0) { // Only create if vocabulary is available
         const newChallenge = await createNewChallenge(user.id, today, vocabulary);
         if (newChallenge) {
           setTodaysChallenge(newChallenge);
@@ -66,7 +75,7 @@ export const useDailyVocabularyChallenge = () => {
 
   return {
     todaysChallenge,
-    loading,
+    loading: loading || vocabularyLoading, // Combine loading states
     markWordCompleted,
     generateOrGetTodaysChallenge,
     getChallengeProgress
