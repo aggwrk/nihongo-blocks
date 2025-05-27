@@ -17,6 +17,7 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
   const [currentWord, setCurrentWord] = useState(0);
   const [selectedLevel, setSelectedLevel] = useState<string>('N5');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [vocabularyLoaded, setVocabularyLoaded] = useState(false);
   const { profile, updateXP, updateVocabularyProgress } = useUserProgress();
   const { vocabulary, loading, getVocabularyByLevelAndCategory } = useComprehensiveVocabulary();
 
@@ -51,6 +52,13 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
     setCurrentWord(0);
   }, [selectedLevel, selectedCategory]);
 
+  // Set vocabulary as loaded when it's available
+  useEffect(() => {
+    if (vocabulary.length > 0 && !vocabularyLoaded) {
+      setVocabularyLoaded(true);
+    }
+  }, [vocabulary, vocabularyLoaded]);
+
   const handleNext = async () => {
     const currentWordData = filteredVocabulary[currentWord];
     
@@ -79,7 +87,7 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
     setCurrentWord(0);
   };
 
-  if (loading) {
+  if (loading || !vocabularyLoaded) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">

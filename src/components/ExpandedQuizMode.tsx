@@ -21,9 +21,10 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [error, setError] = useState<string>('');
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
   useEffect(() => {
-    if (profile && !loading) {
+    if (profile && !loading && !questionsLoaded) {
       try {
         const levelQuestions = getQuestionsByLevelAndCategory(profile.current_level);
         
@@ -37,6 +38,7 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
         
         if (validQuestions.length === 0) {
           setError('No valid questions available for your level. Please try again later.');
+          setQuestionsLoaded(true);
           return;
         }
         
@@ -44,14 +46,16 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
         const shuffled = validQuestions.sort(() => Math.random() - 0.5).slice(0, Math.min(5, validQuestions.length));
         setQuestions(shuffled);
         setError('');
+        setQuestionsLoaded(true);
       } catch (err) {
         console.error('Error loading questions:', err);
         setError('Failed to load quiz questions. Please try again.');
+        setQuestionsLoaded(true);
       }
     }
-  }, [profile, loading, getQuestionsByLevelAndCategory]);
+  }, [profile, loading, getQuestionsByLevelAndCategory, questionsLoaded]);
 
-  if (loading) {
+  if (loading || !questionsLoaded) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -154,8 +158,29 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
   
   // Safety check for current question
   if (!currentQ) {
-    setError('Invalid question data. Please try again.');
-    return null;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Quiz</h2>
+          </div>
+          <div className="w-16" />
+        </div>
+        
+        <Card className="glass-card p-8 text-center">
+          <div className="text-4xl mb-4">📚</div>
+          <h3 className="text-lg font-semibold mb-2">Question unavailable</h3>
+          <p className="text-gray-600 mb-4">There was an issue loading this question.</p>
+          <Button onClick={onComplete} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+            Go Back
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
