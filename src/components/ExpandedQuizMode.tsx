@@ -20,17 +20,38 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     if (profile && !loading) {
-      const levelQuestions = getQuestionsByLevelAndCategory(profile.current_level);
-      // Shuffle and take 5 questions
-      const shuffled = levelQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
-      setQuestions(shuffled);
+      try {
+        const levelQuestions = getQuestionsByLevelAndCategory(profile.current_level);
+        
+        // Filter out invalid questions
+        const validQuestions = levelQuestions.filter(q => 
+          q && 
+          q.question_text && 
+          q.correct_answer && 
+          (q.question_type !== 'multiple_choice' || (q.options && Array.isArray(q.options) && q.options.length > 0))
+        );
+        
+        if (validQuestions.length === 0) {
+          setError('No valid questions available for your level. Please try again later.');
+          return;
+        }
+        
+        // Shuffle and take up to 5 questions
+        const shuffled = validQuestions.sort(() => Math.random() - 0.5).slice(0, Math.min(5, validQuestions.length));
+        setQuestions(shuffled);
+        setError('');
+      } catch (err) {
+        console.error('Error loading questions:', err);
+        setError('Failed to load quiz questions. Please try again.');
+      }
     }
   }, [profile, loading, getQuestionsByLevelAndCategory]);
 
-  if (loading || questions.length === 0) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -43,9 +64,37 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
           </div>
           <div className="w-16" />
         </div>
-        <div className="text-center">
-          {loading ? 'Loading quiz questions...' : 'No questions available for your level'}
+        <div className="text-center">Loading quiz questions...</div>
+      </div>
+    );
+  }
+
+  if (error || questions.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Quiz</h2>
+          </div>
+          <div className="w-16" />
         </div>
+        
+        <Card className="glass-card p-8 text-center">
+          <div className="text-4xl mb-4">📚</div>
+          <h3 className="text-lg font-semibold mb-2">
+            {error || 'No questions available'}
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {error || 'Please try selecting a different level or try again later.'}
+          </p>
+          <Button onClick={onComplete} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+            Go Back
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -95,7 +144,20 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
     );
   }
 
+  // Ensure currentQuestion is within bounds
+  if (currentQuestion >= questions.length) {
+    setQuizCompleted(true);
+    return null;
+  }
+
   const currentQ = questions[currentQuestion];
+  
+  // Safety check for current question
+  if (!currentQ) {
+    setError('Invalid question data. Please try again.');
+    return null;
+  }
+
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   const handleAnswerSelect = (answer: string) => {
