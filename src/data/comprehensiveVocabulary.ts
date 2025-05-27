@@ -1,4 +1,14 @@
+
 export const n5Vocabulary = [
+  // Basic Pronouns and People
+  { id: 'n5_watashi', japanese: '私', hiragana: 'わたし', romaji: 'watashi', english: 'I, me', word_type: 'noun', category: 'pronouns' },
+  { id: 'n5_anata', japanese: 'あなた', hiragana: 'あなた', romaji: 'anata', english: 'you', word_type: 'noun', category: 'pronouns' },
+  { id: 'n5_kare', japanese: '彼', hiragana: 'かれ', romaji: 'kare', english: 'he, him', word_type: 'noun', category: 'pronouns' },
+  { id: 'n5_kanojo', japanese: '彼女', hiragana: 'かのじょ', romaji: 'kanojo', english: 'she, her', word_type: 'noun', category: 'pronouns' },
+  { id: 'n5_watashitachi', japanese: '私たち', hiragana: 'わたしたち', romaji: 'watashitachi', english: 'we, us', word_type: 'noun', category: 'pronouns' },
+  { id: 'n5_anatatachi', japanese: 'あなたたち', hiragana: 'あなたたち', romaji: 'anatatachi', english: 'you (plural)', word_type: 'noun', category: 'pronouns' },
+  { id: 'n5_karera', japanese: '彼ら', hiragana: 'かれら', romaji: 'karera', english: 'they, them', word_type: 'noun', category: 'pronouns' },
+  
   // Numbers and counting
   { id: 'n5_ichi', japanese: '一', hiragana: 'いち', romaji: 'ichi', english: 'one', word_type: 'noun', category: 'numbers' },
   { id: 'n5_ni', japanese: '二', hiragana: 'に', romaji: 'ni', english: 'two', word_type: 'noun', category: 'numbers' },
@@ -13,6 +23,7 @@ export const n5Vocabulary = [
   { id: 'n5_hyaku', japanese: '百', hiragana: 'ひゃく', romaji: 'hyaku', english: 'hundred', word_type: 'noun', category: 'numbers' },
   { id: 'n5_sen', japanese: '千', hiragana: 'せん', romaji: 'sen', english: 'thousand', word_type: 'noun', category: 'numbers' },
   { id: 'n5_man', japanese: '万', hiragana: 'まん', romaji: 'man', english: 'ten thousand', word_type: 'noun', category: 'numbers' },
+  { id: 'n5_zero', japanese: '零', hiragana: 'れい', romaji: 'rei', english: 'zero', word_type: 'noun', category: 'numbers' },
   
   // Time words
   { id: 'n5_ima', japanese: '今', hiragana: 'いま', romaji: 'ima', english: 'now', word_type: 'adverb', category: 'time' },
@@ -23,13 +34,16 @@ export const n5Vocabulary = [
   { id: 'n5_yoru', japanese: '夜', hiragana: 'よる', romaji: 'yoru', english: 'night', word_type: 'noun', category: 'time' },
   { id: 'n5_hiru', japanese: '昼', hiragana: 'ひる', romaji: 'hiru', english: 'noon/daytime', word_type: 'noun', category: 'time' },
   { id: 'n5_ban', japanese: '晩', hiragana: 'ばん', romaji: 'ban', english: 'evening', word_type: 'noun', category: 'time' },
-  { id: 'n5_getsu', japanese: '月', hiragana: 'げつ', romaji: 'getsu', english: 'Monday/month', word_type: 'noun', category: 'time' },
-  { id: 'n5_ka', japanese: '火', hiragana: 'か', romaji: 'ka', english: 'Tuesday/fire', word_type: 'noun', category: 'time' },
-  { id: 'n5_sui', japanese: '水', hiragana: 'すい', romaji: 'sui', english: 'Wednesday/water', word_type: 'noun', category: 'time' },
-  { id: 'n5_moku', japanese: '木', hiragana: 'もく', romaji: 'moku', english: 'Thursday/tree', word_type: 'noun', category: 'time' },
-  { id: 'n5_kin', japanese: '金', hiragana: 'きん', romaji: 'kin', english: 'Friday/gold', word_type: 'noun', category: 'time' },
-  { id: 'n5_do', japanese: '土', hiragana: 'ど', romaji: 'do', english: 'Saturday/earth', word_type: 'noun', category: 'time' },
-  { id: 'n5_nichi', japanese: '日', hiragana: 'にち', romaji: 'nichi', english: 'Sunday/day', word_type: 'noun', category: 'time' },
+  { id: 'n5_getsuyoubi', japanese: '月曜日', hiragana: 'げつようび', romaji: 'getsuyoubi', english: 'Monday', word_type: 'noun', category: 'time' },
+  { id: 'n5_kayoubi', japanese: '火曜日', hiragana: 'かようび', romaji: 'kayoubi', english: 'Tuesday', word_type: 'noun', category: 'time' },
+  { id: 'n5_suiyoubi', japanese: '水曜日', hiragana: 'すいようび', romaji: 'suiyoubi', english: 'Wednesday', word_type: 'noun', category: 'time' },
+  { id: 'n5_mokuyoubi', japanese: '木曜日', hiragana: 'もくようび', romaji: 'mokuyoubi', english: 'Thursday', word_type: 'noun', category: 'time' },
+  { id: 'n5_kinyoubi', japanese: '金曜日', hiragana: 'きんようび', romaji: 'kinyoubi', english: 'Friday', word_type: 'noun', category: 'time' },
+  { id: 'n5_doyoubi', japanese: '土曜日', hiragana: 'どようび', romaji: 'doyoubi', english: 'Saturday', word_type: 'noun', category: 'time' },
+  { id: 'n5_nichiyoubi', japanese: '日曜日', hiragana: 'にちようび', romaji: 'nichiyoubi', english: 'Sunday', word_type: 'noun', category: 'time' },
+  { id: 'n5_toki', japanese: '時', hiragana: 'とき', romaji: 'toki', english: 'time/when', word_type: 'noun', category: 'time' },
+  { id: 'n5_mae', japanese: '前', hiragana: 'まえ', romaji: 'mae', english: 'before/front', word_type: 'noun', category: 'time' },
+  { id: 'n5_ato', japanese: '後', hiragana: 'あと', romaji: 'ato', english: 'after/behind', word_type: 'noun', category: 'time' },
   
   // Family
   { id: 'n5_kazoku', japanese: '家族', hiragana: 'かぞく', romaji: 'kazoku', english: 'family', word_type: 'noun', category: 'family' },
@@ -43,6 +57,8 @@ export const n5Vocabulary = [
   { id: 'n5_obasan', japanese: 'おばさん', hiragana: 'おばさん', romaji: 'obasan', english: 'aunt', word_type: 'noun', category: 'family' },
   { id: 'n5_sofu', japanese: '祖父', hiragana: 'そふ', romaji: 'sofu', english: 'grandfather', word_type: 'noun', category: 'family' },
   { id: 'n5_sobo', japanese: '祖母', hiragana: 'そぼ', romaji: 'sobo', english: 'grandmother', word_type: 'noun', category: 'family' },
+  { id: 'n5_musuko', japanese: '息子', hiragana: 'むすこ', romaji: 'musuko', english: 'son', word_type: 'noun', category: 'family' },
+  { id: 'n5_musume', japanese: '娘', hiragana: 'むすめ', romaji: 'musume', english: 'daughter', word_type: 'noun', category: 'family' },
   
   // Basic verbs
   { id: 'n5_iku', japanese: '行く', hiragana: 'いく', romaji: 'iku', english: 'to go', word_type: 'verb', category: 'actions' },
@@ -61,6 +77,11 @@ export const n5Vocabulary = [
   { id: 'n5_suru', japanese: 'する', hiragana: 'する', romaji: 'suru', english: 'to do', word_type: 'verb', category: 'actions' },
   { id: 'n5_aru', japanese: 'ある', hiragana: 'ある', romaji: 'aru', english: 'to exist (inanimate)', word_type: 'verb', category: 'actions' },
   { id: 'n5_iru', japanese: 'いる', hiragana: 'いる', romaji: 'iru', english: 'to exist (animate)', word_type: 'verb', category: 'actions' },
+  { id: 'n5_tsukuru', japanese: '作る', hiragana: 'つくる', romaji: 'tsukuru', english: 'to make', word_type: 'verb', category: 'actions' },
+  { id: 'n5_motsu', japanese: '持つ', hiragana: 'もつ', romaji: 'motsu', english: 'to hold/have', word_type: 'verb', category: 'actions' },
+  { id: 'n5_kureru', japanese: 'くれる', hiragana: 'くれる', romaji: 'kureru', english: 'to give (to me)', word_type: 'verb', category: 'actions' },
+  { id: 'n5_ageru', japanese: 'あげる', hiragana: 'あげる', romaji: 'ageru', english: 'to give', word_type: 'verb', category: 'actions' },
+  { id: 'n5_morau', japanese: 'もらう', hiragana: 'もらう', romaji: 'morau', english: 'to receive', word_type: 'verb', category: 'actions' },
   
   // Food and drinks
   { id: 'n5_gohan', japanese: 'ご飯', hiragana: 'ごはん', romaji: 'gohan', english: 'rice/meal', word_type: 'noun', category: 'food' },
@@ -78,6 +99,11 @@ export const n5Vocabulary = [
   { id: 'n5_koohii', japanese: 'コーヒー', hiragana: 'コーヒー', romaji: 'koohii', english: 'coffee', word_type: 'noun', category: 'drinks' },
   { id: 'n5_biiru', japanese: 'ビール', hiragana: 'ビール', romaji: 'biiru', english: 'beer', word_type: 'noun', category: 'drinks' },
   { id: 'n5_sake', japanese: '酒', hiragana: 'さけ', romaji: 'sake', english: 'alcohol/sake', word_type: 'noun', category: 'drinks' },
+  { id: 'n5_gyuunyuu', japanese: '牛乳', hiragana: 'ぎゅうにゅう', romaji: 'gyuunyuu', english: 'milk', word_type: 'noun', category: 'drinks' },
+  { id: 'n5_juusu', japanese: 'ジュース', hiragana: 'ジュース', romaji: 'juusu', english: 'juice', word_type: 'noun', category: 'drinks' },
+  { id: 'n5_suupu', japanese: 'スープ', hiragana: 'スープ', romaji: 'suupu', english: 'soup', word_type: 'noun', category: 'food' },
+  { id: 'n5_sarada', japanese: 'サラダ', hiragana: 'サラダ', romaji: 'sarada', english: 'salad', word_type: 'noun', category: 'food' },
+  { id: 'n5_keeki', japanese: 'ケーキ', hiragana: 'ケーキ', romaji: 'keeki', english: 'cake', word_type: 'noun', category: 'food' },
   
   // Colors
   { id: 'n5_akai', japanese: '赤い', hiragana: 'あかい', romaji: 'akai', english: 'red', word_type: 'adjective', category: 'colors' },
@@ -86,6 +112,8 @@ export const n5Vocabulary = [
   { id: 'n5_kuroi', japanese: '黒い', hiragana: 'くろい', romaji: 'kuroi', english: 'black', word_type: 'adjective', category: 'colors' },
   { id: 'n5_kiiroi', japanese: '黄色い', hiragana: 'きいろい', romaji: 'kiiroi', english: 'yellow', word_type: 'adjective', category: 'colors' },
   { id: 'n5_midori', japanese: '緑', hiragana: 'みどり', romaji: 'midori', english: 'green', word_type: 'noun', category: 'colors' },
+  { id: 'n5_chairo', japanese: '茶色', hiragana: 'ちゃいろ', romaji: 'chairo', english: 'brown', word_type: 'noun', category: 'colors' },
+  { id: 'n5_pinku', japanese: 'ピンク', hiragana: 'ピンク', romaji: 'pinku', english: 'pink', word_type: 'noun', category: 'colors' },
   
   // Places
   { id: 'n5_ie', japanese: '家', hiragana: 'いえ', romaji: 'ie', english: 'house/home', word_type: 'noun', category: 'places' },
@@ -98,6 +126,11 @@ export const n5Vocabulary = [
   { id: 'n5_toshokan', japanese: '図書館', hiragana: 'としょかん', romaji: 'toshokan', english: 'library', word_type: 'noun', category: 'places' },
   { id: 'n5_kouen', japanese: '公園', hiragana: 'こうえん', romaji: 'kouen', english: 'park', word_type: 'noun', category: 'places' },
   { id: 'n5_suupaa', japanese: 'スーパー', hiragana: 'スーパー', romaji: 'suupaa', english: 'supermarket', word_type: 'noun', category: 'places' },
+  { id: 'n5_resutoran', japanese: 'レストラン', hiragana: 'レストラン', romaji: 'resutoran', english: 'restaurant', word_type: 'noun', category: 'places' },
+  { id: 'n5_hoteru', japanese: 'ホテル', hiragana: 'ホテル', romaji: 'hoteru', english: 'hotel', word_type: 'noun', category: 'places' },
+  { id: 'n5_daigaku', japanese: '大学', hiragana: 'だいがく', romaji: 'daigaku', english: 'university', word_type: 'noun', category: 'places' },
+  { id: 'n5_kuni', japanese: '国', hiragana: 'くに', romaji: 'kuni', english: 'country', word_type: 'noun', category: 'places' },
+  { id: 'n5_machi', japanese: '町', hiragana: 'まち', romaji: 'machi', english: 'town', word_type: 'noun', category: 'places' },
   
   // Common expressions
   { id: 'n5_arigatou', japanese: 'ありがとう', hiragana: 'ありがとう', romaji: 'arigatou', english: 'thank you', word_type: 'expression', category: 'greetings' },
@@ -109,6 +142,9 @@ export const n5Vocabulary = [
   { id: 'n5_sayonara', japanese: 'さようなら', hiragana: 'さようなら', romaji: 'sayonara', english: 'goodbye', word_type: 'expression', category: 'greetings' },
   { id: 'n5_mata_ashita', japanese: 'また明日', hiragana: 'またあした', romaji: 'mata ashita', english: 'see you tomorrow', word_type: 'expression', category: 'greetings' },
   { id: 'n5_oyasumi', japanese: 'おやすみ', hiragana: 'おやすみ', romaji: 'oyasumi', english: 'good night', word_type: 'expression', category: 'greetings' },
+  { id: 'n5_itadakimasu', japanese: 'いただきます', hiragana: 'いただきます', romaji: 'itadakimasu', english: 'before eating', word_type: 'expression', category: 'greetings' },
+  { id: 'n5_gochisousama', japanese: 'ごちそうさま', hiragana: 'ごちそうさま', romaji: 'gochisousama', english: 'after eating', word_type: 'expression', category: 'greetings' },
+  { id: 'n5_irasshaimase', japanese: 'いらっしゃいませ', hiragana: 'いらっしゃいませ', romaji: 'irasshaimase', english: 'welcome (shop)', word_type: 'expression', category: 'greetings' },
   
   // Basic adjectives
   { id: 'n5_ookii', japanese: '大きい', hiragana: 'おおきい', romaji: 'ookii', english: 'big', word_type: 'adjective', category: 'description' },
@@ -121,6 +157,9 @@ export const n5Vocabulary = [
   { id: 'n5_yasui', japanese: '安い', hiragana: 'やすい', romaji: 'yasui', english: 'cheap', word_type: 'adjective', category: 'description' },
   { id: 'n5_muzukashii', japanese: '難しい', hiragana: 'むずかしい', romaji: 'muzukashii', english: 'difficult', word_type: 'adjective', category: 'description' },
   { id: 'n5_yasashii', japanese: '優しい', hiragana: 'やさしい', romaji: 'yasashii', english: 'kind/easy', word_type: 'adjective', category: 'description' },
+  { id: 'n5_tanoshii', japanese: '楽しい', hiragana: 'たのしい', romaji: 'tanoshii', english: 'fun', word_type: 'adjective', category: 'description' },
+  { id: 'n5_omoshiroi', japanese: '面白い', hiragana: 'おもしろい', romaji: 'omoshiroi', english: 'interesting', word_type: 'adjective', category: 'description' },
+  { id: 'n5_tsumaranai', japanese: 'つまらない', hiragana: 'つまらない', romaji: 'tsumaranai', english: 'boring', word_type: 'adjective', category: 'description' },
   
   // People
   { id: 'n5_hito', japanese: '人', hiragana: 'ひと', romaji: 'hito', english: 'person', word_type: 'noun', category: 'people' },
@@ -131,6 +170,8 @@ export const n5Vocabulary = [
   { id: 'n5_onna', japanese: '女', hiragana: 'おんな', romaji: 'onna', english: 'woman', word_type: 'noun', category: 'people' },
   { id: 'n5_kodomo', japanese: '子供', hiragana: 'こども', romaji: 'kodomo', english: 'child', word_type: 'noun', category: 'people' },
   { id: 'n5_otona', japanese: '大人', hiragana: 'おとな', romaji: 'otona', english: 'adult', word_type: 'noun', category: 'people' },
+  { id: 'n5_nihonjin', japanese: '日本人', hiragana: 'にほんじん', romaji: 'nihonjin', english: 'Japanese person', word_type: 'noun', category: 'people' },
+  { id: 'n5_amerikajin', japanese: 'アメリカ人', hiragana: 'アメリカじん', romaji: 'amerikajin', english: 'American person', word_type: 'noun', category: 'people' },
   
   // Transportation
   { id: 'n5_densha', japanese: '電車', hiragana: 'でんしゃ', romaji: 'densha', english: 'train', word_type: 'noun', category: 'transportation' },
@@ -139,6 +180,7 @@ export const n5Vocabulary = [
   { id: 'n5_jitensha', japanese: '自転車', hiragana: 'じてんしゃ', romaji: 'jitensha', english: 'bicycle', word_type: 'noun', category: 'transportation' },
   { id: 'n5_kuruma', japanese: '車', hiragana: 'くるま', romaji: 'kuruma', english: 'car', word_type: 'noun', category: 'transportation' },
   { id: 'n5_hikouki', japanese: '飛行機', hiragana: 'ひこうき', romaji: 'hikouki', english: 'airplane', word_type: 'noun', category: 'transportation' },
+  { id: 'n5_fune', japanese: '船', hiragana: 'ふね', romaji: 'fune', english: 'ship/boat', word_type: 'noun', category: 'transportation' },
   
   // Weather
   { id: 'n5_tenki', japanese: '天気', hiragana: 'てんき', romaji: 'tenki', english: 'weather', word_type: 'noun', category: 'weather' },
@@ -147,6 +189,34 @@ export const n5Vocabulary = [
   { id: 'n5_kaze', japanese: '風', hiragana: 'かぜ', romaji: 'kaze', english: 'wind', word_type: 'noun', category: 'weather' },
   { id: 'n5_kumori', japanese: '曇り', hiragana: 'くもり', romaji: 'kumori', english: 'cloudy', word_type: 'noun', category: 'weather' },
   { id: 'n5_hare', japanese: '晴れ', hiragana: 'はれ', romaji: 'hare', english: 'clear weather', word_type: 'noun', category: 'weather' },
+  { id: 'n5_atsui', japanese: '暑い', hiragana: 'あつい', romaji: 'atsui', english: 'hot', word_type: 'adjective', category: 'weather' },
+  { id: 'n5_samui', japanese: '寒い', hiragana: 'さむい', romaji: 'samui', english: 'cold', word_type: 'adjective', category: 'weather' },
+  
+  // Body parts
+  { id: 'n5_atama', japanese: '頭', hiragana: 'あたま', romaji: 'atama', english: 'head', word_type: 'noun', category: 'body' },
+  { id: 'n5_me', japanese: '目', hiragana: 'め', romaji: 'me', english: 'eye', word_type: 'noun', category: 'body' },
+  { id: 'n5_hana', japanese: '鼻', hiragana: 'はな', romaji: 'hana', english: 'nose', word_type: 'noun', category: 'body' },
+  { id: 'n5_kuchi', japanese: '口', hiragana: 'くち', romaji: 'kuchi', english: 'mouth', word_type: 'noun', category: 'body' },
+  { id: 'n5_mimi', japanese: '耳', hiragana: 'みみ', romaji: 'mimi', english: 'ear', word_type: 'noun', category: 'body' },
+  { id: 'n5_te', japanese: '手', hiragana: 'て', romaji: 'te', english: 'hand', word_type: 'noun', category: 'body' },
+  { id: 'n5_ashi', japanese: '足', hiragana: 'あし', romaji: 'ashi', english: 'foot/leg', word_type: 'noun', category: 'body' },
+  
+  // Clothes
+  { id: 'n5_fuku', japanese: '服', hiragana: 'ふく', romaji: 'fuku', english: 'clothes', word_type: 'noun', category: 'clothing' },
+  { id: 'n5_shatsu', japanese: 'シャツ', hiragana: 'シャツ', romaji: 'shatsu', english: 'shirt', word_type: 'noun', category: 'clothing' },
+  { id: 'n5_zubon', japanese: 'ズボン', hiragana: 'ズボン', romaji: 'zubon', english: 'pants', word_type: 'noun', category: 'clothing' },
+  { id: 'n5_kutsu', japanese: '靴', hiragana: 'くつ', romaji: 'kutsu', english: 'shoes', word_type: 'noun', category: 'clothing' },
+  { id: 'n5_boushi', japanese: '帽子', hiragana: 'ぼうし', romaji: 'boushi', english: 'hat', word_type: 'noun', category: 'clothing' },
+  
+  // Particles
+  { id: 'n5_wa', japanese: 'は', hiragana: 'は', romaji: 'wa', english: 'topic particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_ga', japanese: 'が', hiragana: 'が', romaji: 'ga', english: 'subject particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_wo', japanese: 'を', hiragana: 'を', romaji: 'wo', english: 'object particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_ni', japanese: 'に', hiragana: 'に', romaji: 'ni', english: 'direction/time particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_de', japanese: 'で', hiragana: 'で', romaji: 'de', english: 'location/means particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_to', japanese: 'と', hiragana: 'と', romaji: 'to', english: 'and/with particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_no', japanese: 'の', hiragana: 'の', romaji: 'no', english: 'possessive particle', word_type: 'particle', category: 'grammar' },
+  { id: 'n5_ka', japanese: 'か', hiragana: 'か', romaji: 'ka', english: 'question particle', word_type: 'particle', category: 'grammar' },
 ];
 
 export const n4Vocabulary = [
@@ -157,16 +227,31 @@ export const n4Vocabulary = [
   { id: 'n4_tokidoki', japanese: '時々', hiragana: 'ときどき', romaji: 'tokidoki', english: 'sometimes', word_type: 'adverb', category: 'time' },
   { id: 'n4_itsumo', japanese: 'いつも', hiragana: 'いつも', romaji: 'itsumo', english: 'always', word_type: 'adverb', category: 'time' },
   { id: 'n4_zenzen', japanese: '全然', hiragana: 'ぜんぜん', romaji: 'zenzen', english: 'not at all', word_type: 'adverb', category: 'time' },
+  { id: 'n4_taitei', japanese: '大抵', hiragana: 'たいてい', romaji: 'taitei', english: 'usually', word_type: 'adverb', category: 'time' },
+  { id: 'n4_hajimete', japanese: '初めて', hiragana: 'はじめて', romaji: 'hajimete', english: 'for the first time', word_type: 'adverb', category: 'time' },
+  { id: 'n4_saigo', japanese: '最後', hiragana: 'さいご', romaji: 'saigo', english: 'last/end', word_type: 'noun', category: 'time' },
+  { id: 'n4_saisho', japanese: '最初', hiragana: 'さいしょ', romaji: 'saisho', english: 'first/beginning', word_type: 'noun', category: 'time' },
+  { id: 'n4_raishuu', japanese: '来週', hiragana: 'らいしゅう', romaji: 'raishuu', english: 'next week', word_type: 'noun', category: 'time' },
+  { id: 'n4_senshuu', japanese: '先週', hiragana: 'せんしゅう', romaji: 'senshuu', english: 'last week', word_type: 'noun', category: 'time' },
+  { id: 'n4_rainen', japanese: '来年', hiragana: 'らいねん', romaji: 'rainen', english: 'next year', word_type: 'noun', category: 'time' },
+  { id: 'n4_kyonen', japanese: '去年', hiragana: 'きょねん', romaji: 'kyonen', english: 'last year', word_type: 'noun', category: 'time' },
+  { id: 'n4_raigetsu', japanese: '来月', hiragana: 'らいげつ', romaji: 'raigetsu', english: 'next month', word_type: 'noun', category: 'time' },
+  { id: 'n4_sengetsu', japanese: '先月', hiragana: 'せんげつ', romaji: 'sengetsu', english: 'last month', word_type: 'noun', category: 'time' },
   
   // Feelings and emotions
-  { id: 'n4_ureshii', japanese: '嬉しい', hiragana: 'うれしい', romaji: 'ureshii', english: 'happy/glad', word_type: 'adjective', category: 'feelings' },
-  { id: 'n4_kanashii', japanese: '悲しい', hiragana: 'かなしい', romaji: 'kanashii', english: 'sad', word_type: 'adjective', category: 'feelings' },
-  { id: 'n4_shinpai', japanese: '心配', hiragana: 'しんぱい', romaji: 'shinpai', english: 'worry/concern', word_type: 'noun', category: 'feelings' },
-  { id: 'n4_anshin', japanese: '安心', hiragana: 'あんしん', romaji: 'anshin', english: 'relief/peace of mind', word_type: 'noun', category: 'feelings' },
-  { id: 'n4_tanoshii', japanese: '楽しい', hiragana: 'たのしい', romaji: 'tanoshii', english: 'fun/enjoyable', word_type: 'adjective', category: 'feelings' },
-  { id: 'n4_tsumaranai', japanese: 'つまらない', hiragana: 'つまらない', romaji: 'tsumaranai', english: 'boring', word_type: 'adjective', category: 'feelings' },
-  { id: 'n4_kowai', japanese: '怖い', hiragana: 'こわい', romaji: 'kowai', english: 'scary/frightening', word_type: 'adjective', category: 'feelings' },
-  { id: 'n4_samishii', japanese: '寂しい', hiragana: 'さみしい', romaji: 'samishii', english: 'lonely', word_type: 'adjective', category: 'feelings' },
+  { id: 'n4_ureshii', japanese: '嬉しい', hiragana: 'うれしい', romaji: 'ureshii', english: 'happy/glad', word_type: 'adjective', category: 'emotions' },
+  { id: 'n4_kanashii', japanese: '悲しい', hiragana: 'かなしい', romaji: 'kanashii', english: 'sad', word_type: 'adjective', category: 'emotions' },
+  { id: 'n4_shinpai', japanese: '心配', hiragana: 'しんぱい', romaji: 'shinpai', english: 'worry/concern', word_type: 'noun', category: 'emotions' },
+  { id: 'n4_anshin', japanese: '安心', hiragana: 'あんしん', romaji: 'anshin', english: 'relief/peace of mind', word_type: 'noun', category: 'emotions' },
+  { id: 'n4_tanoshii', japanese: '楽しい', hiragana: 'たのしい', romaji: 'tanoshii', english: 'fun/enjoyable', word_type: 'adjective', category: 'emotions' },
+  { id: 'n4_tsumaranai', japanese: 'つまらない', hiragana: 'つまらない', romaji: 'tsumaranai', english: 'boring', word_type: 'adjective', category: 'emotions' },
+  { id: 'n4_kowai', japanese: '怖い', hiragana: 'こわい', romaji: 'kowai', english: 'scary/frightening', word_type: 'adjective', category: 'emotions' },
+  { id: 'n4_samishii', japanese: '寂しい', hiragana: 'さみしい', romaji: 'samishii', english: 'lonely', word_type: 'adjective', category: 'emotions' },
+  { id: 'n4_okoru', japanese: '怒る', hiragana: 'おこる', romaji: 'okoru', english: 'to get angry', word_type: 'verb', category: 'emotions' },
+  { id: 'n4_odoroku', japanese: '驚く', hiragana: 'おどろく', romaji: 'odoroku', english: 'to be surprised', word_type: 'verb', category: 'emotions' },
+  { id: 'n4_naku', japanese: '泣く', hiragana: 'なく', romaji: 'naku', english: 'to cry', word_type: 'verb', category: 'emotions' },
+  { id: 'n4_warau', japanese: '笑う', hiragana: 'わらう', romaji: 'warau', english: 'to laugh', word_type: 'verb', category: 'emotions' },
+  { id: 'n4_yorokobu', japanese: '喜ぶ', hiragana: 'よろこぶ', romaji: 'yorokobu', english: 'to be glad', word_type: 'verb', category: 'emotions' },
   
   // Work and business
   { id: 'n4_shigoto', japanese: '仕事', hiragana: 'しごと', romaji: 'shigoto', english: 'work/job', word_type: 'noun', category: 'work' },
@@ -177,6 +262,11 @@ export const n4Vocabulary = [
   { id: 'n4_shain', japanese: '社員', hiragana: 'しゃいん', romaji: 'shain', english: 'company employee', word_type: 'noun', category: 'work' },
   { id: 'n4_buchoo', japanese: '部長', hiragana: 'ぶちょう', romaji: 'buchoo', english: 'department manager', word_type: 'noun', category: 'work' },
   { id: 'n4_kaichoo', japanese: '会長', hiragana: 'かいちょう', romaji: 'kaichoo', english: 'chairman', word_type: 'noun', category: 'work' },
+  { id: 'n4_jimusho', japanese: '事務所', hiragana: 'じむしょ', romaji: 'jimusho', english: 'office', word_type: 'noun', category: 'work' },
+  { id: 'n4_baito', japanese: 'バイト', hiragana: 'バイト', romaji: 'baito', english: 'part-time job', word_type: 'noun', category: 'work' },
+  { id: 'n4_kyuuryou', japanese: '給料', hiragana: 'きゅうりょう', romaji: 'kyuuryou', english: 'salary', word_type: 'noun', category: 'work' },
+  { id: 'n4_yasumi', japanese: '休み', hiragana: 'やすみ', romaji: 'yasumi', english: 'holiday/break', word_type: 'noun', category: 'work' },
+  { id: 'n4_hataraku', japanese: '働く', hiragana: 'はたらく', romaji: 'hataraku', english: 'to work', word_type: 'verb', category: 'work' },
   
   // Advanced adjectives
   { id: 'n4_kantan', japanese: '簡単', hiragana: 'かんたん', romaji: 'kantan', english: 'simple/easy', word_type: 'adjective', category: 'description' },
@@ -187,16 +277,26 @@ export const n4Vocabulary = [
   { id: 'n4_anzen', japanese: '安全', hiragana: 'あんぜん', romaji: 'anzen', english: 'safe/safety', word_type: 'noun', category: 'concepts' },
   { id: 'n4_kiken', japanese: '危険', hiragana: 'きけん', romaji: 'kiken', english: 'dangerous/danger', word_type: 'noun', category: 'concepts' },
   { id: 'n4_benri', japanese: '便利', hiragana: 'べんり', romaji: 'benri', english: 'convenient', word_type: 'adjective', category: 'description' },
+  { id: 'n4_fuben', japanese: '不便', hiragana: 'ふべん', romaji: 'fuben', english: 'inconvenient', word_type: 'adjective', category: 'description' },
+  { id: 'n4_kirei', japanese: 'きれい', hiragana: 'きれい', romaji: 'kirei', english: 'beautiful/clean', word_type: 'adjective', category: 'description' },
+  { id: 'n4_kitanai', japanese: '汚い', hiragana: 'きたない', romaji: 'kitanai', english: 'dirty', word_type: 'adjective', category: 'description' },
+  { id: 'n4_shizuka', japanese: '静か', hiragana: 'しずか', romaji: 'shizuka', english: 'quiet', word_type: 'adjective', category: 'description' },
+  { id: 'n4_urusai', japanese: 'うるさい', hiragana: 'うるさい', romaji: 'urusai', english: 'noisy', word_type: 'adjective', category: 'description' },
+  { id: 'n4_genki', japanese: '元気', hiragana: 'げんき', romaji: 'genki', english: 'healthy/energetic', word_type: 'adjective', category: 'description' },
   
   // Social situations
   { id: 'n4_yakusoku', japanese: '約束', hiragana: 'やくそく', romaji: 'yakusoku', english: 'promise/appointment', word_type: 'noun', category: 'social' },
   { id: 'n4_denwa', japanese: '電話', hiragana: 'でんわ', romaji: 'denwa', english: 'telephone', word_type: 'noun', category: 'communication' },
   { id: 'n4_meeru', japanese: 'メール', hiragana: 'メール', romaji: 'meeru', english: 'email', word_type: 'noun', category: 'communication' },
+  { id: 'n4_tegami', japanese: '手紙', hiragana: 'てがみ', romaji: 'tegami', english: 'letter', word_type: 'noun', category: 'communication' },
   { id: 'n4_renshuu', japanese: '練習', hiragana: 'れんしゅう', romaji: 'renshuu', english: 'practice', word_type: 'noun', category: 'learning' },
   { id: 'n4_shukudai', japanese: '宿題', hiragana: 'しゅくだい', romaji: 'shukudai', english: 'homework', word_type: 'noun', category: 'learning' },
   { id: 'n4_shiken', japanese: '試験', hiragana: 'しけん', romaji: 'shiken', english: 'exam/test', word_type: 'noun', category: 'learning' },
   { id: 'n4_benkyou', japanese: '勉強', hiragana: 'べんきょう', romaji: 'benkyou', english: 'study', word_type: 'noun', category: 'learning' },
   { id: 'n4_kyoushi', japanese: '教師', hiragana: 'きょうし', romaji: 'kyoushi', english: 'teacher/instructor', word_type: 'noun', category: 'learning' },
+  { id: 'n4_jugyou', japanese: '授業', hiragana: 'じゅぎょう', romaji: 'jugyou', english: 'class/lesson', word_type: 'noun', category: 'learning' },
+  { id: 'n4_sotsugyou', japanese: '卒業', hiragana: 'そつぎょう', romaji: 'sotsugyou', english: 'graduation', word_type: 'noun', category: 'learning' },
+  { id: 'n4_nyuugaku', japanese: '入学', hiragana: 'にゅうがく', romaji: 'nyuugaku', english: 'school admission', word_type: 'noun', category: 'learning' },
   
   // Hobbies and activities
   { id: 'n4_shumi', japanese: '趣味', hiragana: 'しゅみ', romaji: 'shumi', english: 'hobby', word_type: 'noun', category: 'hobbies' },
@@ -207,6 +307,12 @@ export const n4Vocabulary = [
   { id: 'n4_ryokou', japanese: '旅行', hiragana: 'りょこう', romaji: 'ryokou', english: 'travel', word_type: 'noun', category: 'hobbies' },
   { id: 'n4_shashin', japanese: '写真', hiragana: 'しゃしん', romaji: 'shashin', english: 'photograph', word_type: 'noun', category: 'hobbies' },
   { id: 'n4_geemu', japanese: 'ゲーム', hiragana: 'ゲーム', romaji: 'geemu', english: 'game', word_type: 'noun', category: 'hobbies' },
+  { id: 'n4_karaoke', japanese: 'カラオケ', hiragana: 'カラオケ', romaji: 'karaoke', english: 'karaoke', word_type: 'noun', category: 'hobbies' },
+  { id: 'n4_kaimono', japanese: '買い物', hiragana: 'かいもの', romaji: 'kaimono', english: 'shopping', word_type: 'noun', category: 'hobbies' },
+  { id: 'n4_sanpo', japanese: '散歩', hiragana: 'さんぽ', romaji: 'sanpo', english: 'walk/stroll', word_type: 'noun', category: 'hobbies' },
+  { id: 'n4_undou', japanese: '運動', hiragana: 'うんどう', romaji: 'undou', english: 'exercise', word_type: 'noun', category: 'hobbies' },
+  { id: 'n4_piano', japanese: 'ピアノ', hiragana: 'ピアノ', romaji: 'piano', english: 'piano', word_type: 'noun', category: 'hobbies' },
+  { id: 'n4_gitaa', japanese: 'ギター', hiragana: 'ギター', romaji: 'gitaa', english: 'guitar', word_type: 'noun', category: 'hobbies' },
   
   // Technology and modern life
   { id: 'n4_konpyuutaa', japanese: 'コンピューター', hiragana: 'コンピューター', romaji: 'konpyuutaa', english: 'computer', word_type: 'noun', category: 'technology' },
@@ -215,6 +321,10 @@ export const n4Vocabulary = [
   { id: 'n4_kamera', japanese: 'カメラ', hiragana: 'カメラ', romaji: 'kamera', english: 'camera', word_type: 'noun', category: 'technology' },
   { id: 'n4_terebi', japanese: 'テレビ', hiragana: 'テレビ', romaji: 'terebi', english: 'television', word_type: 'noun', category: 'technology' },
   { id: 'n4_rajio', japanese: 'ラジオ', hiragana: 'ラジオ', romaji: 'rajio', english: 'radio', word_type: 'noun', category: 'technology' },
+  { id: 'n4_eakon', japanese: 'エアコン', hiragana: 'エアコン', romaji: 'eakon', english: 'air conditioner', word_type: 'noun', category: 'technology' },
+  { id: 'n4_denshi_renji', japanese: '電子レンジ', hiragana: 'でんしレンジ', romaji: 'denshi renji', english: 'microwave', word_type: 'noun', category: 'technology' },
+  { id: 'n4_sentakuki', japanese: '洗濯機', hiragana: 'せんたくき', romaji: 'sentakuki', english: 'washing machine', word_type: 'noun', category: 'technology' },
+  { id: 'n4_reizouko', japanese: '冷蔵庫', hiragana: 'れいぞうこ', romaji: 'reizouko', english: 'refrigerator', word_type: 'noun', category: 'technology' },
   
   // Body and health
   { id: 'n4_karada', japanese: '体', hiragana: 'からだ', romaji: 'karada', english: 'body', word_type: 'noun', category: 'health' },
@@ -223,6 +333,11 @@ export const n4Vocabulary = [
   { id: 'n4_itai', japanese: '痛い', hiragana: 'いたい', romaji: 'itai', english: 'painful', word_type: 'adjective', category: 'health' },
   { id: 'n4_netsu', japanese: '熱', hiragana: 'ねつ', romaji: 'netsu', english: 'fever', word_type: 'noun', category: 'health' },
   { id: 'n4_kaze_illness', japanese: '風邪', hiragana: 'かぜ', romaji: 'kaze', english: 'cold (illness)', word_type: 'noun', category: 'health' },
+  { id: 'n4_kusuri', japanese: '薬', hiragana: 'くすり', romaji: 'kusuri', english: 'medicine', word_type: 'noun', category: 'health' },
+  { id: 'n4_isha', japanese: '医者', hiragana: 'いしゃ', romaji: 'isha', english: 'doctor', word_type: 'noun', category: 'health' },
+  { id: 'n4_kenkou', japanese: '健康', hiragana: 'けんこう', romaji: 'kenkou', english: 'health', word_type: 'noun', category: 'health' },
+  { id: 'n4_tsukare', japanese: '疲れ', hiragana: 'つかれ', romaji: 'tsukare', english: 'fatigue', word_type: 'noun', category: 'health' },
+  { id: 'n4_tsukareru', japanese: '疲れる', hiragana: 'つかれる', romaji: 'tsukareru', english: 'to get tired', word_type: 'verb', category: 'health' },
   
   // More verbs
   { id: 'n4_hashiru', japanese: '走る', hiragana: 'はしる', romaji: 'hashiru', english: 'to run', word_type: 'verb', category: 'actions' },
@@ -232,7 +347,52 @@ export const n4Vocabulary = [
   { id: 'n4_aruku', japanese: '歩く', hiragana: 'あるく', romaji: 'aruku', english: 'to walk', word_type: 'verb', category: 'actions' },
   { id: 'n4_tobu', japanese: '飛ぶ', hiragana: 'とぶ', romaji: 'tobu', english: 'to fly/jump', word_type: 'verb', category: 'actions' },
   { id: 'n4_matsu', japanese: '待つ', hiragana: 'まつ', romaji: 'matsu', english: 'to wait', word_type: 'verb', category: 'actions' },
-  { id: 'n4_tsukuru', japanese: '作る', hiragana: 'つくる', romaji: 'tsukuru', english: 'to make/create', word_type: 'verb', category: 'actions' }
+  { id: 'n4_tsukuru', japanese: '作る', hiragana: 'つくる', romaji: 'tsukuru', english: 'to make/create', word_type: 'verb', category: 'actions' },
+  { id: 'n4_oshieru', japanese: '教える', hiragana: 'おしえる', romaji: 'oshieru', english: 'to teach', word_type: 'verb', category: 'actions' },
+  { id: 'n4_narabu', japanese: '習う', hiragana: 'ならう', romaji: 'narau', english: 'to learn', word_type: 'verb', category: 'actions' },
+  { id: 'n4_tetsudau', japanese: '手伝う', hiragana: 'てつだう', romaji: 'tetsudau', english: 'to help', word_type: 'verb', category: 'actions' },
+  { id: 'n4_okuru', japanese: '送る', hiragana: 'おくる', romaji: 'okuru', english: 'to send', word_type: 'verb', category: 'actions' },
+  { id: 'n4_ukeru', japanese: '受ける', hiragana: 'うける', romaji: 'ukeru', english: 'to receive/take', word_type: 'verb', category: 'actions' },
+  { id: 'n4_kariru', japanese: '借りる', hiragana: 'かりる', romaji: 'kariru', english: 'to borrow', word_type: 'verb', category: 'actions' },
+  { id: 'n4_kasu', japanese: '貸す', hiragana: 'かす', romaji: 'kasu', english: 'to lend', word_type: 'verb', category: 'actions' },
+  { id: 'n4_sagasu', japanese: '探す', hiragana: 'さがす', romaji: 'sagasu', english: 'to search', word_type: 'verb', category: 'actions' },
+  { id: 'n4_mitsukeru', japanese: '見つける', hiragana: 'みつける', romaji: 'mitsukeru', english: 'to find', word_type: 'verb', category: 'actions' },
+  { id: 'n4_nakusu', japanese: '無くす', hiragana: 'なくす', romaji: 'nakusu', english: 'to lose', word_type: 'verb', category: 'actions' },
+  { id: 'n4_hajimaru', japanese: '始まる', hiragana: 'はじまる', romaji: 'hajimaru', english: 'to begin', word_type: 'verb', category: 'actions' },
+  { id: 'n4_owaru', japanese: '終わる', hiragana: 'おわる', romaji: 'owaru', english: 'to end', word_type: 'verb', category: 'actions' },
+  
+  // Nature and environment
+  { id: 'n4_shizen', japanese: '自然', hiragana: 'しぜん', romaji: 'shizen', english: 'nature', word_type: 'noun', category: 'nature' },
+  { id: 'n4_ki', japanese: '木', hiragana: 'き', romaji: 'ki', english: 'tree', word_type: 'noun', category: 'nature' },
+  { id: 'n4_hana', japanese: '花', hiragana: 'はな', romaji: 'hana', english: 'flower', word_type: 'noun', category: 'nature' },
+  { id: 'n4_yama', japanese: '山', hiragana: 'やま', romaji: 'yama', english: 'mountain', word_type: 'noun', category: 'nature' },
+  { id: 'n4_umi', japanese: '海', hiragana: 'うみ', romaji: 'umi', english: 'sea/ocean', word_type: 'noun', category: 'nature' },
+  { id: 'n4_kawa', japanese: '川', hiragana: 'かわ', romaji: 'kawa', english: 'river', word_type: 'noun', category: 'nature' },
+  { id: 'n4_mizuumi', japanese: '湖', hiragana: 'みずうみ', romaji: 'mizuumi', english: 'lake', word_type: 'noun', category: 'nature' },
+  { id: 'n4_ishi', japanese: '石', hiragana: 'いし', romaji: 'ishi', english: 'stone', word_type: 'noun', category: 'nature' },
+  { id: 'n4_suna', japanese: '砂', hiragana: 'すな', romaji: 'suna', english: 'sand', word_type: 'noun', category: 'nature' },
+  { id: 'n4_kusa', japanese: '草', hiragana: 'くさ', romaji: 'kusa', english: 'grass', word_type: 'noun', category: 'nature' },
+  { id: 'n4_mori', japanese: '森', hiragana: 'もり', romaji: 'mori', english: 'forest', word_type: 'noun', category: 'nature' },
+  { id: 'n4_sora', japanese: '空', hiragana: 'そら', romaji: 'sora', english: 'sky', word_type: 'noun', category: 'nature' },
+  { id: 'n4_tsuki', japanese: '月', hiragana: 'つき', romaji: 'tsuki', english: 'moon', word_type: 'noun', category: 'nature' },
+  { id: 'n4_hoshi', japanese: '星', hiragana: 'ほし', romaji: 'hoshi', english: 'star', word_type: 'noun', category: 'nature' },
+  { id: 'n4_taiyou', japanese: '太陽', hiragana: 'たいよう', romaji: 'taiyou', english: 'sun', word_type: 'noun', category: 'nature' },
+  
+  // House and furniture
+  { id: 'n4_heya', japanese: '部屋', hiragana: 'へや', romaji: 'heya', english: 'room', word_type: 'noun', category: 'house' },
+  { id: 'n4_daidokoro', japanese: '台所', hiragana: 'だいどころ', romaji: 'daidokoro', english: 'kitchen', word_type: 'noun', category: 'house' },
+  { id: 'n4_ofuroba', japanese: 'お風呂場', hiragana: 'おふろば', romaji: 'ofuroba', english: 'bathroom', word_type: 'noun', category: 'house' },
+  { id: 'n4_toire', japanese: 'トイレ', hiragana: 'トイレ', romaji: 'toire', english: 'toilet', word_type: 'noun', category: 'house' },
+  { id: 'n4_genkan', japanese: '玄関', hiragana: 'げんかん', romaji: 'genkan', english: 'entrance', word_type: 'noun', category: 'house' },
+  { id: 'n4_niwa', japanese: '庭', hiragana: 'にわ', romaji: 'niwa', english: 'garden', word_type: 'noun', category: 'house' },
+  { id: 'n4_teeburu', japanese: 'テーブル', hiragana: 'テーブル', romaji: 'teeburu', english: 'table', word_type: 'noun', category: 'house' },
+  { id: 'n4_isu', japanese: '椅子', hiragana: 'いす', romaji: 'isu', english: 'chair', word_type: 'noun', category: 'house' },
+  { id: 'n4_beddo', japanese: 'ベッド', hiragana: 'ベッド', romaji: 'beddo', english: 'bed', word_type: 'noun', category: 'house' },
+  { id: 'n4_mado', japanese: '窓', hiragana: 'まど', romaji: 'mado', english: 'window', word_type: 'noun', category: 'house' },
+  { id: 'n4_tobira', japanese: '扉', hiragana: 'とびら', romaji: 'tobira', english: 'door', word_type: 'noun', category: 'house' },
+  { id: 'n4_yuka', japanese: '床', hiragana: 'ゆか', romaji: 'yuka', english: 'floor', word_type: 'noun', category: 'house' },
+  { id: 'n4_tenjou', japanese: '天井', hiragana: 'てんじょう', romaji: 'tenjou', english: 'ceiling', word_type: 'noun', category: 'house' },
+  { id: 'n4_kabe', japanese: '壁', hiragana: 'かべ', romaji: 'kabe', english: 'wall', word_type: 'noun', category: 'house' },
 ];
 
 export const n3Vocabulary = [
@@ -245,6 +405,18 @@ export const n3Vocabulary = [
   { id: 'n3_mokuteki', japanese: '目的', hiragana: 'もくてき', romaji: 'mokuteki', english: 'purpose', word_type: 'noun', category: 'concepts' },
   { id: 'n3_houhou', japanese: '方法', hiragana: 'ほうほう', romaji: 'houhou', english: 'method', word_type: 'noun', category: 'concepts' },
   { id: 'n3_riyu', japanese: '理由', hiragana: 'りゆう', romaji: 'riyu', english: 'reason', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_iken', japanese: '意見', hiragana: 'いけん', romaji: 'iken', english: 'opinion', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_kangae', japanese: '考え', hiragana: 'かんがえ', romaji: 'kangae', english: 'thought/idea', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_teian', japanese: '提案', hiragana: 'ていあん', romaji: 'teian', english: 'proposal', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_jouken', japanese: '条件', hiragana: 'じょうけん', romaji: 'jouken', english: 'condition', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_kizoku', japanese: '規則', hiragana: 'きそく', romaji: 'kisoku', english: 'rule', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_housoku', japanese: '法則', hiragana: 'ほうそく', romaji: 'housoku', english: 'law/principle', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_seido', japanese: '制度', hiragana: 'せいど', romaji: 'seido', english: 'system', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_soshiki', japanese: '組織', hiragana: 'そしき', romaji: 'soshiki', english: 'organization', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_dantai', japanese: '団体', hiragana: 'だんたい', romaji: 'dantai', english: 'group/organization', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_guruupu', japanese: 'グループ', hiragana: 'グループ', romaji: 'guruupu', english: 'group', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_chiimu', japanese: 'チーム', hiragana: 'チーム', romaji: 'chiimu', english: 'team', word_type: 'noun', category: 'concepts' },
+  { id: 'n3_kyouryoku', japanese: '協力', hiragana: 'きょうりょく', romaji: 'kyouryoku', english: 'cooperation', word_type: 'noun', category: 'concepts' },
   
   // Advanced emotions and states
   { id: 'n3_kimochi', japanese: '気持ち', hiragana: 'きもち', romaji: 'kimochi', english: 'feeling', word_type: 'noun', category: 'emotions' },
@@ -255,6 +427,17 @@ export const n3Vocabulary = [
   { id: 'n3_enryo', japanese: '遠慮', hiragana: 'えんりょ', romaji: 'enryo', english: 'restraint/reserve', word_type: 'noun', category: 'emotions' },
   { id: 'n3_shinnen', japanese: '信念', hiragana: 'しんねん', romaji: 'shinnen', english: 'belief/conviction', word_type: 'noun', category: 'emotions' },
   { id: 'n3_kitai', japanese: '期待', hiragana: 'きたい', romaji: 'kitai', english: 'expectation', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_shitsubou', japanese: '失望', hiragana: 'しつぼう', romaji: 'shitsubou', english: 'disappointment', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_manzoku', japanese: '満足', hiragana: 'まんぞく', romaji: 'manzoku', english: 'satisfaction', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_fuman', japanese: '不満', hiragana: 'ふまん', romaji: 'fuman', english: 'dissatisfaction', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_shigeki', japanese: '刺激', hiragana: 'しげき', romaji: 'shigeki', english: 'stimulation', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_kandou', japanese: '感動', hiragana: 'かんどう', romaji: 'kandou', english: 'emotion/impression', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_kanji', japanese: '感じ', hiragana: 'かんじ', romaji: 'kanji', english: 'feeling/sense', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_inshou', japanese: '印象', hiragana: 'いんしょう', romaji: 'inshou', english: 'impression', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_keiken', japanese: '経験', hiragana: 'けいけん', romaji: 'keiken', english: 'experience', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_taikenteki', japanese: '体験', hiragana: 'たいけん', romaji: 'taiken', english: 'experience/to experience', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_kioku', japanese: '記憶', hiragana: 'きおく', romaji: 'kioku', english: 'memory', word_type: 'noun', category: 'emotions' },
+  { id: 'n3_omoide', japanese: '思い出', hiragana: 'おもいで', romaji: 'omoide', english: 'memory/remembrance', word_type: 'noun', category: 'emotions' },
   
   // Professional and academic terms
   { id: 'n3_kenkyuu', japanese: '研究', hiragana: 'けんきゅう', romaji: 'kenkyuu', english: 'research', word_type: 'noun', category: 'academic' },
@@ -265,9 +448,20 @@ export const n3Vocabulary = [
   { id: 'n3_gijutsu', japanese: '技術', hiragana: 'ぎじゅつ', romaji: 'gijutsu', english: 'technology/skill', word_type: 'noun', category: 'academic' },
   { id: 'n3_kagaku', japanese: '科学', hiragana: 'かがく', romaji: 'kagaku', english: 'science', word_type: 'noun', category: 'academic' },
   { id: 'n3_bunka', japanese: '文化', hiragana: 'ぶんか', romaji: 'bunka', english: 'culture', word_type: 'noun', category: 'academic' },
+  { id: 'n3_rekishi', japanese: '歴史', hiragana: 'れきし', romaji: 'rekishi', english: 'history', word_type: 'noun', category: 'academic' },
+  { id: 'n3_dentou', japanese: '伝統', hiragana: 'でんとう', romaji: 'dentou', english: 'tradition', word_type: 'noun', category: 'academic' },
+  { id: 'n3_shuukan', japanese: '習慣', hiragana: 'しゅうかん', romaji: 'shuukan', english: 'custom/habit', word_type: 'noun', category: 'academic' },
+  { id: 'n3_fuuzoku', japanese: '風俗', hiragana: 'ふうぞく', romaji: 'fuuzoku', english: 'customs/manners', word_type: 'noun', category: 'academic' },
+  { id: 'n3_shakai', japanese: '社会', hiragana: 'しゃかい', romaji: 'shakai', english: 'society', word_type: 'noun', category: 'academic' },
+  { id: 'n3_jinrui', japanese: '人類', hiragana: 'じんるい', romaji: 'jinrui', english: 'humanity/mankind', word_type: 'noun', category: 'academic' },
+  { id: 'n3_ningenkankei', japanese: '人間関係', hiragana: 'にんげんかんけい', romaji: 'ningenkankei', english: 'human relationships', word_type: 'noun', category: 'academic' },
+  { id: 'n3_communication', japanese: 'コミュニケーション', hiragana: 'コミュニケーション', romaji: 'komyunikeeshon', english: 'communication', word_type: 'noun', category: 'academic' },
+  { id: 'n3_jouhou', japanese: '情報', hiragana: 'じょうほう', romaji: 'jouhou', english: 'information', word_type: 'noun', category: 'academic' },
+  { id: 'n3_shiryou', japanese: '資料', hiragana: 'しりょう', romaji: 'shiryou', english: 'material/data', word_type: 'noun', category: 'academic' },
+  { id: 'n3_deeta', japanese: 'データ', hiragana: 'データ', romaji: 'deeta', english: 'data', word_type: 'noun', category: 'academic' },
+  { id: 'n3_bunseki', japanese: '分析', hiragana: 'ぶんせき', romaji: 'bunseki', english: 'analysis', word_type: 'noun', category: 'academic' },
   
   // Complex social concepts
-  { id: 'n3_shakai', japanese: '社会', hiragana: 'しゃかい', romaji: 'shakai', english: 'society', word_type: 'noun', category: 'society' },
   { id: 'n3_seiji', japanese: '政治', hiragana: 'せいじ', romaji: 'seiji', english: 'politics', word_type: 'noun', category: 'society' },
   { id: 'n3_keizai', japanese: '経済', hiragana: 'けいざい', romaji: 'keizai', english: 'economy', word_type: 'noun', category: 'society' },
   { id: 'n3_kokusai', japanese: '国際', hiragana: 'こくさい', romaji: 'kokusai', english: 'international', word_type: 'noun', category: 'society' },
@@ -275,14 +469,63 @@ export const n3Vocabulary = [
   { id: 'n3_shizen', japanese: '自然', hiragana: 'しぜん', romaji: 'shizen', english: 'nature', word_type: 'noun', category: 'society' },
   { id: 'n3_heiwa', japanese: '平和', hiragana: 'へいわ', romaji: 'heiwa', english: 'peace', word_type: 'noun', category: 'society' },
   { id: 'n3_sensou', japanese: '戦争', hiragana: 'せんそう', romaji: 'sensou', english: 'war', word_type: 'noun', category: 'society' },
+  { id: 'n3_mondai', japanese: '問題', hiragana: 'もんだい', romaji: 'mondai', english: 'problem/issue', word_type: 'noun', category: 'society' },
+  { id: 'n3_kiki', japanese: '危機', hiragana: 'きき', romaji: 'kiki', english: 'crisis', word_type: 'noun', category: 'society' },
+  { id: 'n3_kaihatsu', japanese: '開発', hiragana: 'かいはつ', romaji: 'kaihatsu', english: 'development', word_type: 'noun', category: 'society' },
+  { id: 'n3_shinpo', japanese: '進歩', hiragana: 'しんぽ', romaji: 'shinpo', english: 'progress', word_type: 'noun', category: 'society' },
+  { id: 'n3_hatten', japanese: '発展', hiragana: 'はってん', romaji: 'hatten', english: 'development/growth', word_type: 'noun', category: 'society' },
+  { id: 'n3_koujou', japanese: '向上', hiragana: 'こうじょう', romaji: 'koujou', english: 'improvement', word_type: 'noun', category: 'society' },
+  { id: 'n3_kaikaku', japanese: '改革', hiragana: 'かいかく', romaji: 'kaikaku', english: 'reform', word_type: 'noun', category: 'society' },
+  { id: 'n3_henka', japanese: '変化', hiragana: 'へんか', romaji: 'henka', english: 'change', word_type: 'noun', category: 'society' },
+  { id: 'n3_shinpo', japanese: '進歩', hiragana: 'しんぽ', romaji: 'shinpo', english: 'progress/advancement', word_type: 'noun', category: 'society' },
+  { id: 'n3_eikyou', japanese: '影響', hiragana: 'えいきょう', romaji: 'eikyou', english: 'influence/effect', word_type: 'noun', category: 'society' },
+  { id: 'n3_koukyou', japanese: '効果', hiragana: 'こうか', romaji: 'kouka', english: 'effect/result', word_type: 'noun', category: 'society' },
+  { id: 'n3_yakuwari', japanese: '役割', hiragana: 'やくわり', romaji: 'yakuwari', english: 'role/part', word_type: 'noun', category: 'society' },
+  { id: 'n3_sekinin', japanese: '責任', hiragana: 'せきにん', romaji: 'sekinin', english: 'responsibility', word_type: 'noun', category: 'society' },
   
   // Advanced descriptive words
   { id: 'n3_tokubetsu', japanese: '特別', hiragana: 'とくべつ', romaji: 'tokubetsu', english: 'special', word_type: 'adjective', category: 'description' },
   { id: 'n3_ippan', japanese: '一般', hiragana: 'いっぱん', romaji: 'ippan', english: 'general/ordinary', word_type: 'noun', category: 'description' },
   { id: 'n3_gutaiteki', japanese: '具体的', hiragana: 'ぐたいてき', romaji: 'gutaiteki', english: 'concrete/specific', word_type: 'adjective', category: 'description' },
   { id: 'n3_chushoteki', japanese: '抽象的', hiragana: 'ちゅうしょうてき', romaji: 'chushoteki', english: 'abstract', word_type: 'adjective', category: 'description' },
-  { id: 'n3_koudai', japanese: '壮大', hiragana: 'そうだい', romaji: 'koudai', english: 'magnificent/grand', word_type: 'adjective', category: 'description' },
+  { id: 'n3_soudai', japanese: '壮大', hiragana: 'そうだい', romaji: 'soudai', english: 'magnificent/grand', word_type: 'adjective', category: 'description' },
   { id: 'n3_shinsetsu', japanese: '親切', hiragana: 'しんせつ', romaji: 'shinsetsu', english: 'kind/helpful', word_type: 'adjective', category: 'description' },
   { id: 'n3_majime', japanese: '真面目', hiragana: 'まじめ', romaji: 'majime', english: 'serious/earnest', word_type: 'adjective', category: 'description' },
-  { id: 'n3_yuumei', japanese: '有名', hiragana: 'ゆうめい', romaji: 'yuumei', english: 'famous', word_type: 'adjective', category: 'description' }
+  { id: 'n3_yuumei', japanese: '有名', hiragana: 'ゆうめい', romaji: 'yuumei', english: 'famous', word_type: 'adjective', category: 'description' },
+  { id: 'n3_ninki', japanese: '人気', hiragana: 'にんき', romaji: 'ninki', english: 'popularity/popular', word_type: 'noun', category: 'description' },
+  { id: 'n3_kanpeki', japanese: '完璧', hiragana: 'かんぺき', romaji: 'kanpeki', english: 'perfect', word_type: 'adjective', category: 'description' },
+  { id: 'n3_kanzen', japanese: '完全', hiragana: 'かんぜん', romaji: 'kanzen', english: 'complete/perfect', word_type: 'adjective', category: 'description' },
+  { id: 'n3_bubun', japanese: '部分', hiragana: 'ぶぶん', romaji: 'bubun', english: 'part/portion', word_type: 'noun', category: 'description' },
+  { id: 'n3_zenbu', japanese: '全部', hiragana: 'ぜんぶ', romaji: 'zenbu', english: 'all/everything', word_type: 'noun', category: 'description' },
+  { id: 'n3_zentai', japanese: '全体', hiragana: 'ぜんたい', romaji: 'zentai', english: 'whole/entirety', word_type: 'noun', category: 'description' },
+  { id: 'n3_kosuu', japanese: '個数', hiragana: 'こすう', romaji: 'kosuu', english: 'number/quantity', word_type: 'noun', category: 'description' },
+  { id: 'n3_ryou', japanese: '量', hiragana: 'りょう', romaji: 'ryou', english: 'amount/quantity', word_type: 'noun', category: 'description' },
+  { id: 'n3_shitsu', japanese: '質', hiragana: 'しつ', romaji: 'shitsu', english: 'quality', word_type: 'noun', category: 'description' },
+  { id: 'n3_reberu', japanese: 'レベル', hiragana: 'レベル', romaji: 'reberu', english: 'level', word_type: 'noun', category: 'description' },
+  { id: 'n3_dankai', japanese: '段階', hiragana: 'だんかい', romaji: 'dankai', english: 'stage/level', word_type: 'noun', category: 'description' },
+  { id: 'n3_katei', japanese: '過程', hiragana: 'かてい', romaji: 'katei', english: 'process', word_type: 'noun', category: 'description' },
+  
+  // Advanced verbs
+  { id: 'n3_settoku', japanese: '説得', hiragana: 'せっとく', romaji: 'settoku', english: 'persuasion', word_type: 'noun', category: 'actions' },
+  { id: 'n3_settokusuru', japanese: '説得する', hiragana: 'せっとくする', romaji: 'settoku suru', english: 'to persuade', word_type: 'verb', category: 'actions' },
+  { id: 'n3_setsumei', japanese: '説明', hiragana: 'せつめい', romaji: 'setsumei', english: 'explanation', word_type: 'noun', category: 'actions' },
+  { id: 'n3_setsumeisuru', japanese: '説明する', hiragana: 'せつめいする', romaji: 'setsumei suru', english: 'to explain', word_type: 'verb', category: 'actions' },
+  { id: 'n3_hihan', japanese: '批判', hiragana: 'ひはん', romaji: 'hihan', english: 'criticism', word_type: 'noun', category: 'actions' },
+  { id: 'n3_hihansuru', japanese: '批判する', hiragana: 'ひはんする', romaji: 'hihan suru', english: 'to criticize', word_type: 'verb', category: 'actions' },
+  { id: 'n3_sansei', japanese: '賛成', hiragana: 'さんせい', romaji: 'sansei', english: 'agreement', word_type: 'noun', category: 'actions' },
+  { id: 'n3_sanseisuru', japanese: '賛成する', hiragana: 'さんせいする', romaji: 'sansei suru', english: 'to agree', word_type: 'verb', category: 'actions' },
+  { id: 'n3_hantai', japanese: '反対', hiragana: 'はんたい', romaji: 'hantai', english: 'opposition', word_type: 'noun', category: 'actions' },
+  { id: 'n3_hantaisuru', japanese: '反対する', hiragana: 'はんたいする', romaji: 'hantai suru', english: 'to oppose', word_type: 'verb', category: 'actions' },
+  { id: 'n3_kyohi', japanese: '拒否', hiragana: 'きょひ', romaji: 'kyohi', english: 'refusal', word_type: 'noun', category: 'actions' },
+  { id: 'n3_kyohisuru', japanese: '拒否する', hiragana: 'きょひする', romaji: 'kyohi suru', english: 'to refuse', word_type: 'verb', category: 'actions' },
+  { id: 'n3_shounin', japanese: '承認', hiragana: 'しょうにん', romaji: 'shounin', english: 'approval', word_type: 'noun', category: 'actions' },
+  { id: 'n3_shouninsuru', japanese: '承認する', hiragana: 'しょうにんする', romaji: 'shounin suru', english: 'to approve', word_type: 'verb', category: 'actions' },
+  { id: 'n3_kettei', japanese: '決定', hiragana: 'けってい', romaji: 'kettei', english: 'decision', word_type: 'noun', category: 'actions' },
+  { id: 'n3_ketteisuru', japanese: '決定する', hiragana: 'けっていする', romaji: 'kettei suru', english: 'to decide', word_type: 'verb', category: 'actions' },
+  { id: 'n3_sentaku', japanese: '選択', hiragana: 'せんたく', romaji: 'sentaku', english: 'choice/selection', word_type: 'noun', category: 'actions' },
+  { id: 'n3_sentakusuru', japanese: '選択する', hiragana: 'せんたくする', romaji: 'sentaku suru', english: 'to choose/select', word_type: 'verb', category: 'actions' },
+  { id: 'n3_handan', japanese: '判断', hiragana: 'はんだん', romaji: 'handan', english: 'judgment', word_type: 'noun', category: 'actions' },
+  { id: 'n3_handansuru', japanese: '判断する', hiragana: 'はんだんする', romaji: 'handan suru', english: 'to judge', word_type: 'verb', category: 'actions' },
+  { id: 'n3_hyouka', japanese: '評価', hiragana: 'ひょうか', romaji: 'hyouka', english: 'evaluation', word_type: 'noun', category: 'actions' },
+  { id: 'n3_hyoukasuru', japanese: '評価する', hiragana: 'ひょうかする', romaji: 'hyouka suru', english: 'to evaluate', word_type: 'verb', category: 'actions' }
 ];

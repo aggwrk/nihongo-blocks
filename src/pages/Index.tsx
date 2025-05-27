@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Brain, Languages, Trophy, Calendar, Flame, Target, LogIn } from 'lucide-react';
+import { Brain, Languages, Trophy, Calendar, Flame, Target, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgress } from '@/hooks/useUserProgress';
 import { useDailyVocabularyChallenge } from '@/hooks/useDailyVocabularyChallenge';
@@ -15,7 +15,7 @@ import DailyVocabularyChallenge from '@/components/DailyVocabularyChallenge';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { profile, loading: profileLoading } = useUserProgress();
   const { todaysChallenge, loading: challengeLoading } = useDailyVocabularyChallenge();
@@ -50,6 +50,11 @@ const Index = () => {
     } finally {
       setLessonsLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
   };
 
   // Show loading skeleton only for profile, not everything
@@ -90,10 +95,27 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            日本語を学ぼう！
-          </h1>
-          <p className="text-xl text-gray-600">Learn Japanese Together</p>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1" />
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                日本語を学ぼう！
+              </h1>
+              <p className="text-xl text-gray-600">Learn Japanese Together</p>
+            </div>
+            <div className="flex-1 flex justify-end">
+              {user && (
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="bg-white/80 hover:bg-white"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              )}
+            </div>
+          </div>
           
           {/* Login button for non-authenticated users */}
           {!user && (
@@ -204,7 +226,7 @@ const Index = () => {
         )}
 
         {/* Learning Modes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <Card className="glass-card p-6 text-center hover:scale-105 transition-transform cursor-pointer group" onClick={() => setCurrentMode('quiz')}>
             <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">🧠</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-800">Practice Quizzes</h3>
@@ -222,16 +244,6 @@ const Index = () => {
             <Button className="w-full bg-kawaii-peach hover:bg-kawaii-lavender text-gray-800">
               <Languages className="w-4 h-4 mr-2" />
               Study Words
-            </Button>
-          </Card>
-
-          <Card className="glass-card p-6 text-center hover:scale-105 transition-transform cursor-pointer group" onClick={() => setCurrentMode('daily-challenge')}>
-            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">🏆</div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Daily Challenge</h3>
-            <p className="text-gray-600 mb-4">Complete your daily vocabulary goal</p>
-            <Button className="w-full bg-kawaii-sky hover:bg-kawaii-mint text-gray-800">
-              <Trophy className="w-4 h-4 mr-2" />
-              Start Challenge
             </Button>
           </Card>
         </div>
