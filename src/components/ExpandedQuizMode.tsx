@@ -21,41 +21,51 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [error, setError] = useState<string>('');
-  const [questionsLoaded, setQuestionsLoaded] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (profile && !loading && !questionsLoaded) {
+    if (profile && !loading && !isInitialized) {
+      console.log('Initializing quiz questions for level:', profile.current_level);
+      
       try {
         const levelQuestions = getQuestionsByLevelAndCategory(profile.current_level);
+        console.log('Available questions:', levelQuestions.length);
         
-        // Filter out invalid questions
-        const validQuestions = levelQuestions.filter(q => 
-          q && 
-          q.question_text && 
-          q.correct_answer && 
-          (q.question_type !== 'multiple_choice' || (q.options && Array.isArray(q.options) && q.options.length > 0))
-        );
+        // Filter out invalid questions more carefully
+        const validQuestions = levelQuestions.filter(q => {
+          const hasBasicFields = q && q.question_text && q.correct_answer;
+          const hasValidOptions = q.question_type !== 'multiple_choice' || 
+            (q.options && Array.isArray(q.options) && q.options.length > 0);
+          
+          return hasBasicFields && hasValidOptions;
+        });
+        
+        console.log('Valid questions after filtering:', validQuestions.length);
         
         if (validQuestions.length === 0) {
-          setError('No valid questions available for your level. Please try again later.');
-          setQuestionsLoaded(true);
+          setError('No questions available for your current level. Please try a different level or contact support.');
+          setIsInitialized(true);
           return;
         }
         
         // Shuffle and take up to 5 questions
-        const shuffled = validQuestions.sort(() => Math.random() - 0.5).slice(0, Math.min(5, validQuestions.length));
+        const shuffled = validQuestions
+          .sort(() => Math.random() - 0.5)
+          .slice(0, Math.min(5, validQuestions.length));
+        
+        console.log('Selected questions for quiz:', shuffled.length);
         setQuestions(shuffled);
         setError('');
-        setQuestionsLoaded(true);
+        setIsInitialized(true);
       } catch (err) {
-        console.error('Error loading questions:', err);
+        console.error('Error initializing quiz questions:', err);
         setError('Failed to load quiz questions. Please try again.');
-        setQuestionsLoaded(true);
+        setIsInitialized(true);
       }
     }
-  }, [profile, loading, getQuestionsByLevelAndCategory, questionsLoaded]);
+  }, [profile, loading, getQuestionsByLevelAndCategory, isInitialized]);
 
-  if (loading || !questionsLoaded) {
+  if (loading || !isInitialized) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -148,41 +158,7 @@ const ExpandedQuizMode = ({ onComplete }: ExpandedQuizModeProps) => {
     );
   }
 
-  // Ensure currentQuestion is within bounds
-  if (currentQuestion >= questions.length) {
-    setQuizCompleted(true);
-    return null;
-  }
-
   const currentQ = questions[currentQuestion];
-  
-  // Safety check for current question
-  if (!currentQ) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onComplete}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <div className="text-center">
-            <h2 className="text-lg font-semibold">Quiz</h2>
-          </div>
-          <div className="w-16" />
-        </div>
-        
-        <Card className="glass-card p-8 text-center">
-          <div className="text-4xl mb-4">📚</div>
-          <h3 className="text-lg font-semibold mb-2">Question unavailable</h3>
-          <p className="text-gray-600 mb-4">There was an issue loading this question.</p>
-          <Button onClick={onComplete} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
-            Go Back
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   const handleAnswerSelect = (answer: string) => {
