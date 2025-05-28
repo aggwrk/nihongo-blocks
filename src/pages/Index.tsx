@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,35 +19,37 @@ const Index = () => {
   const { profile, loading: profileLoading } = useUserProgress();
   const { todaysChallenge, loading: challengeLoading } = useDailyVocabularyChallenge();
   const [currentMode, setCurrentMode] = useState<'home' | 'quiz' | 'vocabulary' | 'daily-challenge'>('home');
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
-  const [lessonsLoading, setLessonsLoading] = useState(true);
+  const [wordsLearned, setWordsLearned] = useState<number>(0);
+  const [wordsLoading, setWordsLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchCompletedLessons();
+      fetchWordsLearned();
     } else {
-      setLessonsLoading(false);
+      setWordsLoading(false);
     }
   }, [user]);
 
-  const fetchCompletedLessons = async () => {
+  const fetchWordsLearned = async () => {
     if (!user) return;
 
     try {
       const { data, error } = await supabase
-        .from('user_lesson_progress')
-        .select('lesson_id')
+        .from('user_vocabulary_progress')
+        .select('word_id')
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error fetching completed lessons:', error);
+        console.error('Error fetching words learned:', error);
       } else {
-        setCompletedLessons(data.map(item => item.lesson_id));
+        // Count unique words that have been practiced
+        const uniqueWords = new Set(data.map(item => item.word_id));
+        setWordsLearned(uniqueWords.size);
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
-      setLessonsLoading(false);
+      setWordsLoading(false);
     }
   };
 
@@ -178,7 +179,7 @@ const Index = () => {
                 <Card className="glass-card p-4 text-center">
                   <Languages className="w-8 h-8 mx-auto mb-2 text-blue-500" />
                   <div className="text-2xl font-bold text-gray-800">
-                    {lessonsLoading ? <Skeleton className="h-6 w-6 mx-auto" /> : completedLessons.length}
+                    {wordsLoading ? <Skeleton className="h-6 w-6 mx-auto" /> : wordsLearned}
                   </div>
                   <div className="text-sm text-gray-600">Words Learned</div>
                 </Card>

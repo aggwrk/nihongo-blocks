@@ -72,6 +72,8 @@ const VocabularyMode = ({ onComplete }: VocabularyModeProps) => {
       // Award XP for completing vocabulary practice
       await updateXP(25);
       onComplete();
+      // Trigger a page refresh to update the words learned counter
+      window.location.reload();
     }
   };
 
