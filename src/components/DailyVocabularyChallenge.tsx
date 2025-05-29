@@ -44,17 +44,70 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
   };
 
   const currentWord = getCurrentWord();
-  const hasMoreWords = todaysChallenge && currentWordIndex < todaysChallenge.word_ids.length - 1;
+
+  // Check if we should automatically move to next word
+  useEffect(() => {
+    if (!todaysChallenge) return;
+    
+    const currentWordId = todaysChallenge.word_ids[currentWordIndex];
+    const isCurrentWordCompleted = todaysChallenge.completed_words.includes(currentWordId);
+    
+    // If current word is completed and we have more words, move to next uncompleted word
+    if (isCurrentWordCompleted && currentWordIndex < todaysChallenge.word_ids.length - 1) {
+      // Find next uncompleted word
+      let nextIndex = currentWordIndex + 1;
+      while (nextIndex < todaysChallenge.word_ids.length) {
+        const nextWordId = todaysChallenge.word_ids[nextIndex];
+        if (!todaysChallenge.completed_words.includes(nextWordId)) {
+          setCurrentWordIndex(nextIndex);
+          return;
+        }
+        nextIndex++;
+      }
+      
+      // If all remaining words are completed, challenge is done
+      if (nextIndex >= todaysChallenge.word_ids.length) {
+        // All words completed, stay on current position but show completion state
+        return;
+      }
+    }
+  }, [todaysChallenge?.completed_words, currentWordIndex, todaysChallenge?.word_ids]);
 
   const handleWordComplete = async (wordId: string, masteryScore: number) => {
     if (!todaysChallenge) return;
     
     await markWordCompleted(wordId, masteryScore);
     
-    if (hasMoreWords) {
-      setTimeout(() => {
-        setCurrentWordIndex(prev => prev + 1);
-      }, 1000);
+    // Don't manually advance here - let the useEffect handle it
+  };
+
+  const handleNextWord = () => {
+    if (!todaysChallenge) return;
+    
+    // Find next uncompleted word
+    let nextIndex = currentWordIndex + 1;
+    while (nextIndex < todaysChallenge.word_ids.length) {
+      const nextWordId = todaysChallenge.word_ids[nextIndex];
+      if (!todaysChallenge.completed_words.includes(nextWordId)) {
+        setCurrentWordIndex(nextIndex);
+        return;
+      }
+      nextIndex++;
+    }
+    
+    // If no more uncompleted words, go to first uncompleted or stay at end
+    for (let i = 0; i < todaysChallenge.word_ids.length; i++) {
+      const wordId = todaysChallenge.word_ids[i];
+      if (!todaysChallenge.completed_words.includes(wordId)) {
+        setCurrentWordIndex(i);
+        return;
+      }
+    }
+  };
+
+  const handlePreviousWord = () => {
+    if (currentWordIndex > 0) {
+      setCurrentWordIndex(currentWordIndex - 1);
     }
   };
 
@@ -129,18 +182,20 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
           <p className="text-gray-600 mb-4">
             Unable to load the current word. Let's skip to the next one.
           </p>
-          {hasMoreWords ? (
-            <Button 
-              onClick={() => setCurrentWordIndex(prev => prev + 1)}
-              className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
-            >
-              Next Word
-            </Button>
-          ) : (
-            <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
-              Go Back
-            </Button>
-          )}
+          <div className="flex space-x-2 justify-center">
+            {currentWordIndex < todaysChallenge.word_ids.length - 1 ? (
+              <Button 
+                onClick={handleNextWord}
+                className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
+              >
+                Next Word
+              </Button>
+            ) : (
+              <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+                Go Back
+              </Button>
+            )}
+          </div>
         </Card>
       </div>
     );
@@ -184,6 +239,9 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
     );
   }
 
+  const currentWordId = todaysChallenge.word_ids[currentWordIndex];
+  const isCurrentWordCompleted = todaysChallenge.completed_words.includes(currentWordId);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -222,6 +280,37 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
         challengeMode={true}
         showExample={true}
       />
+
+      {/* Navigation Controls */}
+      <Card className="glass-card p-4">
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={handlePreviousWord}
+            disabled={currentWordIndex === 0}
+            className="bg-white/50"
+          >
+            Previous
+          </Button>
+          
+          <div className="text-center">
+            {isCurrentWordCompleted && (
+              <div className="text-sm text-green-600 font-medium">
+                ✓ Word completed!
+              </div>
+            )}
+          </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleNextWord}
+            disabled={currentWordIndex >= todaysChallenge.word_ids.length - 1}
+            className="bg-white/50"
+          >
+            Next
+          </Button>
+        </div>
+      </Card>
 
       {/* Challenge Info */}
       <Card className="glass-card p-4 text-center">
