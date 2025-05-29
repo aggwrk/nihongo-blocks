@@ -7,39 +7,48 @@ import type { DailyChallenge } from '@/types/dailyChallenge';
 
 export const useDailyVocabularyChallenge = () => {
   const [todaysChallenge, setTodaysChallenge] = useState<DailyChallenge | null>(null);
-  const [loading, setLoading] = useState(false); // Start with false for faster initial render
+  const [loading, setLoading] = useState(true);
   const { vocabulary, loading: vocabularyLoading } = useComprehensiveVocabulary();
 
   useEffect(() => {
-    // Only generate challenge if vocabulary is loaded and we don't have a challenge yet
-    if (!vocabularyLoading && vocabulary.length > 0 && !todaysChallenge) {
+    // Only generate challenge when vocabulary is loaded and user is authenticated
+    if (!vocabularyLoading && vocabulary.length > 0) {
       generateOrGetTodaysChallenge();
     }
-  }, [vocabularyLoading, vocabulary.length, todaysChallenge]);
+  }, [vocabularyLoading, vocabulary.length]);
 
   const generateOrGetTodaysChallenge = async () => {
-    if (loading) return; // Prevent duplicate calls
+    if (loading && todaysChallenge) return; // Prevent duplicate calls
     
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.log('No authenticated user found');
         setLoading(false);
         return;
       }
 
       const today = new Date().toISOString().split('T')[0];
+      console.log('Fetching challenge for date:', today);
 
       // Check if challenge already exists for today
       const existingChallenge = await fetchTodaysChallenge(user.id, today);
 
       if (existingChallenge) {
+        console.log('Found existing challenge:', existingChallenge.id);
         setTodaysChallenge(existingChallenge);
-      } else if (vocabulary.length > 0) { // Only create if vocabulary is available
+      } else if (vocabulary.length > 0) {
+        console.log('Creating new challenge with vocabulary count:', vocabulary.length);
         const newChallenge = await createNewChallenge(user.id, today, vocabulary);
         if (newChallenge) {
+          console.log('New challenge created:', newChallenge.id);
           setTodaysChallenge(newChallenge);
+        } else {
+          console.log('Failed to create new challenge');
         }
+      } else {
+        console.log('No vocabulary available for challenge creation');
       }
     } catch (error) {
       console.error('Error in generateOrGetTodaysChallenge:', error);
@@ -75,7 +84,7 @@ export const useDailyVocabularyChallenge = () => {
 
   return {
     todaysChallenge,
-    loading: loading || vocabularyLoading, // Combine loading states
+    loading: loading || vocabularyLoading,
     markWordCompleted,
     generateOrGetTodaysChallenge,
     getChallengeProgress

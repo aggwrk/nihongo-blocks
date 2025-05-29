@@ -54,12 +54,16 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
             Back
           </Button>
         </div>
-        <div className="text-center">Loading today's challenge...</div>
+        <Card className="glass-card p-6 text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <h3 className="text-lg font-semibold mb-2">Loading Challenge...</h3>
+          <p className="text-gray-600">Preparing your daily vocabulary challenge</p>
+        </Card>
       </div>
     );
   }
 
-  if (!todaysChallenge || !currentWord) {
+  if (!todaysChallenge) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -71,8 +75,37 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
 
         <Card className="glass-card p-6 text-center">
           <div className="text-4xl mb-4">📚</div>
-          <h3 className="text-lg font-semibold mb-2">No challenge available</h3>
-          <p className="text-gray-600">Complete some lessons first to unlock daily challenges!</p>
+          <h3 className="text-lg font-semibold mb-2">Challenge Unavailable</h3>
+          <p className="text-gray-600 mb-4">
+            We're having trouble creating your daily challenge. This might be because:
+          </p>
+          <ul className="text-sm text-gray-500 text-left max-w-md mx-auto mb-4">
+            <li>• Vocabulary data is still loading</li>
+            <li>• You need to complete some vocabulary practice first</li>
+            <li>• There's a temporary issue with challenge generation</li>
+          </ul>
+          <p className="text-sm text-gray-500">
+            Try practicing some vocabulary words first, then come back for your daily challenge!
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!currentWord) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onComplete}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        </div>
+
+        <Card className="glass-card p-6 text-center">
+          <div className="text-4xl mb-4">❓</div>
+          <h3 className="text-lg font-semibold mb-2">Word Not Found</h3>
+          <p className="text-gray-600">Unable to load the current word. Please try again.</p>
         </Card>
       </div>
     );

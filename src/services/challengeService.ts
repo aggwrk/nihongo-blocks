@@ -22,6 +22,8 @@ export const fetchTodaysChallenge = async (userId: string, today: string) => {
 
 export const createNewChallenge = async (userId: string, today: string, vocabulary: any[]): Promise<DailyChallenge | null> => {
   try {
+    console.log('Creating new challenge with vocabulary count:', vocabulary.length);
+    
     // Get previous challenges to find review words
     const { data: previousChallenges } = await supabase
       .from('daily_vocabulary_challenges')
@@ -32,16 +34,47 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
 
     // Determine user's current difficulty level based on recent performance
     const difficultyLevel = calculateDifficultyLevel(previousChallenges || []);
+    console.log('Calculated difficulty level:', difficultyLevel);
     
     // Get vocabulary words based on difficulty level
     const availableWords = getWordsForLevel(difficultyLevel, vocabulary);
+    console.log('Available words for level:', availableWords.length);
+    
+    // If no words available for the difficulty level, fall back to N5 words
+    let wordsToUse = availableWords;
+    if (wordsToUse.length === 0) {
+      wordsToUse = vocabulary.filter(word => word.jlpt_level === 'N5');
+      console.log('Falling back to N5 words:', wordsToUse.length);
+    }
+    
+    // If still no words, use any available vocabulary
+    if (wordsToUse.length === 0) {
+      wordsToUse = vocabulary.slice(0, 10); // Take first 10 words as fallback
+      console.log('Using fallback vocabulary:', wordsToUse.length);
+    }
     
     // Select review words from previous challenges (words that need reinforcement)
     const reviewWords = getReviewWords(previousChallenges || []);
+    console.log('Review words:', reviewWords.length);
     
     // Create a mix of new words and review words
-    const newWords = getNewWords(availableWords, previousChallenges || [], 6);
-    const allChallengeWords = [...reviewWords.slice(0, 4), ...newWords];
+    const maxNewWords = Math.max(5, 8 - reviewWords.length); // Ensure at least 5 words total
+    const newWords = getNewWords(wordsToUse, previousChallenges || [], maxNewWords);
+    console.log('New words selected:', newWords.length);
+    
+    // Combine review and new words, ensure minimum of 5 words
+    const allChallengeWords = [...reviewWords.slice(0, 3), ...newWords];
+    
+    // If we still don't have enough words, add more from available vocabulary
+    if (allChallengeWords.length < 5 && wordsToUse.length > 0) {
+      const additionalWords = wordsToUse
+        .filter(word => !allChallengeWords.includes(word.id))
+        .slice(0, 5 - allChallengeWords.length)
+        .map(word => word.id);
+      allChallengeWords.push(...additionalWords);
+    }
+    
+    console.log('Final challenge words:', allChallengeWords.length);
     
     if (allChallengeWords.length > 0) {
       const { data: newChallenge, error: createError } = await supabase
@@ -53,7 +86,7 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
           completed_words: [],
           is_completed: false,
           difficulty_level: difficultyLevel,
-          review_words: reviewWords,
+          review_words: reviewWords.slice(0, 3),
           mastery_scores: {}
         })
         .select()
@@ -63,9 +96,12 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
         console.error('Error creating challenge:', createError);
         return null;
       } else {
+        console.log('Challenge created successfully:', newChallenge.id);
         return convertSupabaseChallenge(newChallenge);
       }
     }
+    
+    console.log('No words available for challenge creation');
     return null;
   } catch (error) {
     console.error('Error creating new challenge:', error);
