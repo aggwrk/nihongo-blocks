@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Calendar, Target, ArrowLeft } from 'lucide-react';
+import { Trophy, Calendar, Target, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useDailyVocabularyChallenge } from '@/hooks/useDailyVocabularyChallenge';
 import { useComprehensiveVocabulary } from '@/hooks/useComprehensiveVocabulary';
 import EnhancedVocabularyCard from './EnhancedVocabularyCard';
@@ -13,9 +13,10 @@ interface DailyVocabularyChallengeProps {
 }
 
 const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => {
-  const { todaysChallenge, loading: challengeLoading, markWordCompleted, getChallengeProgress } = useDailyVocabularyChallenge();
-  const { vocabulary, loading: vocabularyLoading } = useComprehensiveVocabulary();
+  const { todaysChallenge, loading: challengeLoading, markWordCompleted, getChallengeProgress, generateOrGetTodaysChallenge } = useDailyVocabularyChallenge();
+  const { vocabulary, loading: vocabularyLoading, refetch: refetchVocabulary } = useComprehensiveVocabulary();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const progress = getChallengeProgress();
   
@@ -45,6 +46,21 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
 
   const currentWord = getCurrentWord();
 
+  // Handle refresh functionality
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Refetch vocabulary data
+      await refetchVocabulary();
+      // Regenerate today's challenge
+      await generateOrGetTodaysChallenge();
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Check if we should automatically move to next word
   useEffect(() => {
     if (!todaysChallenge) return;
@@ -64,12 +80,6 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
         }
         nextIndex++;
       }
-      
-      // If all remaining words are completed, challenge is done
-      if (nextIndex >= todaysChallenge.word_ids.length) {
-        // All words completed, stay on current position but show completion state
-        return;
-      }
     }
   }, [todaysChallenge?.completed_words, currentWordIndex, todaysChallenge?.word_ids]);
 
@@ -78,7 +88,11 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
     
     await markWordCompleted(wordId, masteryScore);
     
-    // Don't manually advance here - let the useEffect handle it
+    // Force refresh of the component state after completion
+    setTimeout(() => {
+      // This will trigger the useEffect to move to next word
+      setCurrentWordIndex(currentWordIndex);
+    }, 100);
   };
 
   const handleNextWord = () => {
@@ -127,7 +141,9 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
           <div className="text-center">
             <h2 className="text-lg font-semibold">Daily Challenge</h2>
           </div>
-          <div className="w-16" />
+          <Button variant="ghost" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
         <div className="text-center">Loading today's challenge...</div>
       </div>
@@ -145,24 +161,32 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
           <div className="text-center">
             <h2 className="text-lg font-semibold">Daily Challenge</h2>
           </div>
-          <div className="w-16" />
+          <Button variant="ghost" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
 
         <Card className="glass-card p-6 text-center">
           <div className="text-4xl mb-4">📚</div>
           <h3 className="text-lg font-semibold mb-2">No Challenge Available</h3>
           <p className="text-gray-600 mb-4">
-            We're preparing your daily vocabulary challenge. Please check back in a moment.
+            We're preparing your daily vocabulary challenge. Try refreshing or check back in a moment.
           </p>
-          <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
-            Go Back
-          </Button>
+          <div className="flex space-x-2 justify-center">
+            <Button onClick={handleRefresh} disabled={isRefreshing} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button onClick={onBack} variant="outline">
+              Go Back
+            </Button>
+          </div>
         </Card>
       </div>
     );
   }
 
-  if (!currentWord) {
+  if (!currentWord || vocabulary.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -173,25 +197,31 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
           <div className="text-center">
             <h2 className="text-lg font-semibold">Daily Challenge</h2>
           </div>
-          <div className="w-16" />
+          <Button variant="ghost" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
 
         <Card className="glass-card p-6 text-center">
           <div className="text-4xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold mb-2">Word Not Found</h3>
           <p className="text-gray-600 mb-4">
-            Unable to load the current word. Let's skip to the next one.
+            Unable to load vocabulary data. Please refresh to reload the challenge.
           </p>
           <div className="flex space-x-2 justify-center">
+            <Button onClick={handleRefresh} disabled={isRefreshing} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
             {currentWordIndex < todaysChallenge.word_ids.length - 1 ? (
               <Button 
                 onClick={handleNextWord}
-                className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
+                variant="outline"
               >
                 Next Word
               </Button>
             ) : (
-              <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+              <Button onClick={onBack} variant="outline">
                 Go Back
               </Button>
             )}
@@ -212,7 +242,9 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
           <div className="text-center">
             <h2 className="text-lg font-semibold">Daily Challenge</h2>
           </div>
-          <div className="w-16" />
+          <Button variant="ghost" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
 
         <Card className="glass-card p-6 text-center">
@@ -259,7 +291,9 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
             Word {currentWordIndex + 1} of {todaysChallenge.word_ids.length}
           </p>
         </div>
-        <div className="w-16" />
+        <Button variant="ghost" onClick={handleRefresh} disabled={isRefreshing}>
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {/* Progress */}
@@ -294,9 +328,13 @@ const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => 
           </Button>
           
           <div className="text-center">
-            {isCurrentWordCompleted && (
+            {isCurrentWordCompleted ? (
               <div className="text-sm text-green-600 font-medium">
                 ✓ Word completed!
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">
+                Complete this word to continue
               </div>
             )}
           </div>
