@@ -24,6 +24,11 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
   try {
     console.log('Creating new challenge with vocabulary count:', vocabulary.length);
     
+    if (vocabulary.length === 0) {
+      console.log('No vocabulary available to create challenge');
+      return null;
+    }
+    
     // Get previous challenges to find review words
     const { data: previousChallenges } = await supabase
       .from('daily_vocabulary_challenges')
@@ -36,38 +41,60 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
     const difficultyLevel = calculateDifficultyLevel(previousChallenges || []);
     console.log('Calculated difficulty level:', difficultyLevel);
     
-    // Get vocabulary words based on difficulty level
-    const availableWords = getWordsForLevel(difficultyLevel, vocabulary);
+    // Get vocabulary words based on difficulty level with fallbacks
+    let availableWords = getWordsForLevel(difficultyLevel, vocabulary);
     console.log('Available words for level:', availableWords.length);
     
-    // If no words available for the difficulty level, fall back to N5 words
-    let wordsToUse = availableWords;
-    if (wordsToUse.length === 0) {
-      wordsToUse = vocabulary.filter(word => word.jlpt_level === 'N5');
-      console.log('Falling back to N5 words:', wordsToUse.length);
+    // Progressive fallback strategy
+    if (availableWords.length < 5) {
+      console.log('Not enough words for difficulty level, trying N5 words');
+      availableWords = vocabulary.filter(word => word.jlpt_level === 'N5');
+      
+      if (availableWords.length < 5) {
+        console.log('Not enough N5 words, using any available vocabulary');
+        availableWords = vocabulary.slice();
+      }
     }
     
-    // If still no words, use any available vocabulary
-    if (wordsToUse.length === 0) {
-      wordsToUse = vocabulary.slice(0, 10); // Take first 10 words as fallback
-      console.log('Using fallback vocabulary:', wordsToUse.length);
+    // If still no words, return null
+    if (availableWords.length === 0) {
+      console.log('No vocabulary words available at all');
+      return null;
     }
     
     // Select review words from previous challenges (words that need reinforcement)
     const reviewWords = getReviewWords(previousChallenges || []);
-    console.log('Review words:', reviewWords.length);
+    console.log('Review words found:', reviewWords.length);
+    
+    // Filter review words to ensure they exist in current vocabulary
+    const validReviewWords = reviewWords.filter(reviewWordId => 
+      vocabulary.some(word => word.id === reviewWordId)
+    );
+    console.log('Valid review words:', validReviewWords.length);
     
     // Create a mix of new words and review words
-    const maxNewWords = Math.max(5, 8 - reviewWords.length); // Ensure at least 5 words total
-    const newWords = getNewWords(wordsToUse, previousChallenges || [], maxNewWords);
+    const targetWordCount = 8;
+    const maxReviewWords = Math.min(3, validReviewWords.length);
+    const maxNewWords = targetWordCount - maxReviewWords;
+    
+    // Get new words (excluding review words)
+    const newWords = getNewWords(
+      availableWords.filter(word => !validReviewWords.includes(word.id)), 
+      previousChallenges || [], 
+      maxNewWords
+    );
     console.log('New words selected:', newWords.length);
     
-    // Combine review and new words, ensure minimum of 5 words
-    const allChallengeWords = [...reviewWords.slice(0, 3), ...newWords];
+    // Combine review and new words
+    const allChallengeWords = [
+      ...validReviewWords.slice(0, maxReviewWords),
+      ...newWords
+    ];
     
-    // If we still don't have enough words, add more from available vocabulary
-    if (allChallengeWords.length < 5 && wordsToUse.length > 0) {
-      const additionalWords = wordsToUse
+    // Ensure we have at least 5 words
+    if (allChallengeWords.length < 5) {
+      // Add more words from available vocabulary if needed
+      const additionalWords = availableWords
         .filter(word => !allChallengeWords.includes(word.id))
         .slice(0, 5 - allChallengeWords.length)
         .map(word => word.id);
@@ -86,7 +113,7 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
           completed_words: [],
           is_completed: false,
           difficulty_level: difficultyLevel,
-          review_words: reviewWords.slice(0, 3),
+          review_words: validReviewWords.slice(0, maxReviewWords),
           mastery_scores: {}
         })
         .select()
@@ -101,7 +128,7 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
       }
     }
     
-    console.log('No words available for challenge creation');
+    console.log('Unable to create challenge with sufficient words');
     return null;
   } catch (error) {
     console.error('Error creating new challenge:', error);
@@ -110,7 +137,11 @@ export const createNewChallenge = async (userId: string, today: string, vocabula
 };
 
 export const updateChallengeProgress = async (challengeId: string, wordId: string, masteryScore: number, currentChallenge: DailyChallenge): Promise<DailyChallenge | null> => {
-  const updatedCompletedWords = [...currentChallenge.completed_words, wordId];
+  // Avoid adding duplicate words to completed_words
+  const updatedCompletedWords = currentChallenge.completed_words.includes(wordId) 
+    ? currentChallenge.completed_words 
+    : [...currentChallenge.completed_words, wordId];
+    
   const updatedMasteryScores = {
     ...currentChallenge.mastery_scores,
     [wordId]: masteryScore

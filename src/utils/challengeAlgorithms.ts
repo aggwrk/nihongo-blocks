@@ -21,6 +21,10 @@ export const calculateDifficultyLevel = (previousChallenges: any[]): number => {
 export const getWordsForLevel = (difficultyLevel: number, vocabulary: any[]): any[] => {
   console.log('Getting words for difficulty level:', difficultyLevel, 'from vocabulary:', vocabulary.length);
   
+  if (!vocabulary || vocabulary.length === 0) {
+    return [];
+  }
+  
   switch (difficultyLevel) {
     case 1:
       return vocabulary.filter(word => word.jlpt_level === 'N5');
@@ -37,6 +41,8 @@ export const getReviewWords = (previousChallenges: any[]): string[] => {
   
   // Find words that were answered incorrectly or need reinforcement
   previousChallenges.slice(0, 3).forEach(challenge => { // Only look at last 3 challenges
+    if (!challenge.mastery_scores || !challenge.word_ids) return;
+    
     const masteryScores = convertMasteryScores(challenge.mastery_scores);
     Object.entries(masteryScores).forEach(([wordId, score]) => {
       if (score < 0.7 && !reviewWords.includes(wordId)) {
@@ -45,8 +51,8 @@ export const getReviewWords = (previousChallenges: any[]): string[] => {
     });
     
     // Also include incomplete words from recent challenges
-    const incompleteWords = challenge.word_ids.filter(
-      (wordId: string) => !challenge.completed_words.includes(wordId)
+    const incompleteWords = (challenge.word_ids || []).filter(
+      (wordId: string) => !(challenge.completed_words || []).includes(wordId)
     );
     incompleteWords.forEach((wordId: string) => {
       if (!reviewWords.includes(wordId)) {
@@ -59,10 +65,16 @@ export const getReviewWords = (previousChallenges: any[]): string[] => {
 };
 
 export const getNewWords = (availableWords: any[], previousChallenges: any[], count: number): string[] => {
+  if (!availableWords || availableWords.length === 0) {
+    return [];
+  }
+  
   // Get words that haven't been used recently
   const recentlyUsedWords = new Set<string>();
   previousChallenges.slice(0, 5).forEach(challenge => { // Look at last 5 challenges
-    challenge.word_ids.forEach((wordId: string) => recentlyUsedWords.add(wordId));
+    if (challenge.word_ids) {
+      challenge.word_ids.forEach((wordId: string) => recentlyUsedWords.add(wordId));
+    }
   });
   
   const newWords = availableWords

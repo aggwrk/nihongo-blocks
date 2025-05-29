@@ -3,62 +3,80 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Calendar, Trophy, Target, RotateCcw } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Trophy, Calendar, Target, ArrowLeft } from 'lucide-react';
 import { useDailyVocabularyChallenge } from '@/hooks/useDailyVocabularyChallenge';
 import { useComprehensiveVocabulary } from '@/hooks/useComprehensiveVocabulary';
-import { useUserProgress } from '@/hooks/useUserProgress';
 import EnhancedVocabularyCard from './EnhancedVocabularyCard';
 
 interface DailyVocabularyChallengeProps {
-  onComplete: () => void;
+  onBack: () => void;
 }
 
-const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps) => {
+const DailyVocabularyChallenge = ({ onBack }: DailyVocabularyChallengeProps) => {
+  const { todaysChallenge, loading: challengeLoading, markWordCompleted, getChallengeProgress } = useDailyVocabularyChallenge();
+  const { vocabulary, loading: vocabularyLoading } = useComprehensiveVocabulary();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const { todaysChallenge, loading, markWordCompleted, getChallengeProgress } = useDailyVocabularyChallenge();
-  const { vocabulary } = useComprehensiveVocabulary();
-  const { updateXP } = useUserProgress();
 
   const progress = getChallengeProgress();
-  const currentWordId = todaysChallenge?.word_ids[currentWordIndex];
-  const currentWord = vocabulary.find(word => word.id === currentWordId);
+  
+  // Get current word from vocabulary based on challenge word IDs
+  const getCurrentWord = () => {
+    if (!todaysChallenge || !vocabulary.length) return null;
+    
+    const wordId = todaysChallenge.word_ids[currentWordIndex];
+    if (!wordId) return null;
+    
+    // First try to find the word in the database vocabulary
+    let word = vocabulary.find(w => w.id === wordId);
+    
+    // If not found in database, try to find by matching japanese text
+    if (!word) {
+      // Extract the word part from the ID (everything after the last underscore)
+      const wordPart = wordId.split('_').pop();
+      word = vocabulary.find(w => 
+        w.japanese.includes(wordPart || '') || 
+        w.romaji.includes(wordPart || '') ||
+        w.english.toLowerCase().includes((wordPart || '').toLowerCase())
+      );
+    }
+    
+    return word;
+  };
+
+  const currentWord = getCurrentWord();
+  const hasMoreWords = todaysChallenge && currentWordIndex < todaysChallenge.word_ids.length - 1;
 
   const handleWordComplete = async (wordId: string, masteryScore: number) => {
+    if (!todaysChallenge) return;
+    
     await markWordCompleted(wordId, masteryScore);
     
-    // Award XP based on mastery
-    const xpGain = Math.round(masteryScore * 10);
-    await updateXP(xpGain);
-
-    // Move to next word or complete challenge
-    if (currentWordIndex < (todaysChallenge?.word_ids.length || 0) - 1) {
-      setCurrentWordIndex(currentWordIndex + 1);
-    } else {
-      // Challenge completed - award bonus XP
-      await updateXP(25);
-      setTimeout(() => onComplete(), 1500);
+    if (hasMoreWords) {
+      setTimeout(() => {
+        setCurrentWordIndex(prev => prev + 1);
+      }, 1000);
     }
   };
 
-  const isReviewWord = (wordId: string) => {
-    return todaysChallenge?.review_words?.includes(wordId) || false;
-  };
+  // Reset current word index when challenge changes
+  useEffect(() => {
+    setCurrentWordIndex(0);
+  }, [todaysChallenge?.id]);
 
-  if (loading) {
+  if (challengeLoading || vocabularyLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onComplete}>
+          <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Daily Challenge</h2>
+          </div>
+          <div className="w-16" />
         </div>
-        <Card className="glass-card p-6 text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <h3 className="text-lg font-semibold mb-2">Loading Challenge...</h3>
-          <p className="text-gray-600">Preparing your daily vocabulary challenge</p>
-        </Card>
+        <div className="text-center">Loading today's challenge...</div>
       </div>
     );
   }
@@ -67,26 +85,25 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onComplete}>
+          <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Daily Challenge</h2>
+          </div>
+          <div className="w-16" />
         </div>
 
         <Card className="glass-card p-6 text-center">
           <div className="text-4xl mb-4">📚</div>
-          <h3 className="text-lg font-semibold mb-2">Challenge Unavailable</h3>
+          <h3 className="text-lg font-semibold mb-2">No Challenge Available</h3>
           <p className="text-gray-600 mb-4">
-            We're having trouble creating your daily challenge. This might be because:
+            We're preparing your daily vocabulary challenge. Please check back in a moment.
           </p>
-          <ul className="text-sm text-gray-500 text-left max-w-md mx-auto mb-4">
-            <li>• Vocabulary data is still loading</li>
-            <li>• You need to complete some vocabulary practice first</li>
-            <li>• There's a temporary issue with challenge generation</li>
-          </ul>
-          <p className="text-sm text-gray-500">
-            Try practicing some vocabulary words first, then come back for your daily challenge!
-          </p>
+          <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+            Go Back
+          </Button>
         </Card>
       </div>
     );
@@ -96,16 +113,34 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onComplete}>
+          <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Daily Challenge</h2>
+          </div>
+          <div className="w-16" />
         </div>
 
         <Card className="glass-card p-6 text-center">
-          <div className="text-4xl mb-4">❓</div>
+          <div className="text-4xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold mb-2">Word Not Found</h3>
-          <p className="text-gray-600">Unable to load the current word. Please try again.</p>
+          <p className="text-gray-600 mb-4">
+            Unable to load the current word. Let's skip to the next one.
+          </p>
+          {hasMoreWords ? (
+            <Button 
+              onClick={() => setCurrentWordIndex(prev => prev + 1)}
+              className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800"
+            >
+              Next Word
+            </Button>
+          ) : (
+            <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+              Go Back
+            </Button>
+          )}
         </Card>
       </div>
     );
@@ -115,44 +150,35 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onComplete}>
+          <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
           <div className="text-center">
-            <h2 className="text-lg font-semibold flex items-center">
-              <Trophy className="w-4 h-4 mr-2 text-yellow-500" />
-              Challenge Completed!
-            </h2>
+            <h2 className="text-lg font-semibold">Daily Challenge</h2>
           </div>
           <div className="w-16" />
         </div>
 
         <Card className="glass-card p-6 text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h3 className="text-xl font-bold mb-2 text-green-600">Perfect!</h3>
+          <h3 className="text-xl font-bold mb-2">Challenge Complete!</h3>
           <p className="text-gray-600 mb-4">
-            You've completed today's vocabulary challenge!
+            Great job! You've completed today's vocabulary challenge.
           </p>
-          
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-kawaii-mint">{progress.total}</div>
-              <div className="text-xs text-gray-600">Words Studied</div>
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <div className="flex items-center">
+              <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
+              <span>Challenge Completed</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-kawaii-peach">{todaysChallenge.difficulty_level}</div>
-              <div className="text-xs text-gray-600">Difficulty Level</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-kawaii-yellow">{todaysChallenge.review_words?.length || 0}</div>
-              <div className="text-xs text-gray-600">Review Words</div>
+            <div className="flex items-center">
+              <Target className="w-5 h-5 text-green-500 mr-2" />
+              <span>{progress.completed}/{progress.total} Words</span>
             </div>
           </div>
-
-          <p className="text-sm text-gray-500">
-            Come back tomorrow for a new challenge! 📅
-          </p>
+          <Button onClick={onBack} className="bg-kawaii-mint hover:bg-kawaii-sky text-gray-800">
+            Back to Menu
+          </Button>
         </Card>
       </div>
     );
@@ -162,7 +188,7 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onComplete}>
+        <Button variant="ghost" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
@@ -175,33 +201,21 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
             Word {currentWordIndex + 1} of {todaysChallenge.word_ids.length}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-xs">
-            Level {todaysChallenge.difficulty_level}
-          </Badge>
-        </div>
+        <div className="w-16" />
       </div>
 
       {/* Progress */}
-      <div className="space-y-2">
-        <Progress value={progress.percentage} className="h-3" />
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>{progress.completed} completed</span>
-          <span>{progress.total - progress.completed} remaining</span>
+      <Card className="glass-card p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Progress</span>
+          <span className="text-sm text-gray-600">
+            {progress.completed}/{progress.total} completed
+          </span>
         </div>
-      </div>
+        <Progress value={progress.percentage} className="h-2" />
+      </Card>
 
-      {/* Current Word Indicator */}
-      {isReviewWord(currentWordId) && (
-        <div className="flex justify-center">
-          <Badge className="bg-orange-100 text-orange-800">
-            <RotateCcw className="w-3 h-3 mr-1" />
-            Review Word
-          </Badge>
-        </div>
-      )}
-
-      {/* Vocabulary Card */}
+      {/* Word Card */}
       <EnhancedVocabularyCard
         word={currentWord}
         onComplete={handleWordComplete}
@@ -210,24 +224,23 @@ const DailyVocabularyChallenge = ({ onComplete }: DailyVocabularyChallengeProps)
       />
 
       {/* Challenge Info */}
-      <Card className="glass-card p-4">
-        <div className="flex justify-between items-center text-sm">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <Target className="w-4 h-4 mr-1 text-kawaii-mint" />
-              <span>New: {todaysChallenge.word_ids.length - (todaysChallenge.review_words?.length || 0)}</span>
-            </div>
-            <div className="flex items-center">
-              <RotateCcw className="w-4 h-4 mr-1 text-orange-500" />
-              <span>Review: {todaysChallenge.review_words?.length || 0}</span>
-            </div>
+      <Card className="glass-card p-4 text-center">
+        <div className="flex justify-between items-center text-sm text-gray-600">
+          <div className="flex items-center">
+            <Target className="w-4 h-4 mr-1" />
+            Level {todaysChallenge.difficulty_level}
           </div>
-          <div className="text-gray-500">
-            Difficulty Level {todaysChallenge.difficulty_level}
+          <div>
+            {todaysChallenge.review_words.length > 0 && 
+              `${todaysChallenge.review_words.length} review words`
+            }
+          </div>
+          <div>
+            JLPT {currentWord.jlpt_level}
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          💡 Study each word carefully, then mark if you knew it or need more practice!
+          💡 Mark how well you know this word to help us personalize future challenges!
         </p>
       </Card>
     </div>

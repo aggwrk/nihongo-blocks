@@ -11,14 +11,17 @@ export const useDailyVocabularyChallenge = () => {
   const { vocabulary, loading: vocabularyLoading } = useComprehensiveVocabulary();
 
   useEffect(() => {
-    // Only generate challenge when vocabulary is loaded and user is authenticated
+    // Only generate challenge when vocabulary is loaded, user is authenticated, and we have vocabulary data
     if (!vocabularyLoading && vocabulary.length > 0) {
       generateOrGetTodaysChallenge();
+    } else if (!vocabularyLoading && vocabulary.length === 0) {
+      console.log('No vocabulary data available');
+      setLoading(false);
     }
   }, [vocabularyLoading, vocabulary.length]);
 
   const generateOrGetTodaysChallenge = async () => {
-    if (loading && todaysChallenge) return; // Prevent duplicate calls
+    if (!loading && todaysChallenge) return; // Prevent duplicate calls
     
     setLoading(true);
     try {
@@ -46,12 +49,15 @@ export const useDailyVocabularyChallenge = () => {
           setTodaysChallenge(newChallenge);
         } else {
           console.log('Failed to create new challenge');
+          setTodaysChallenge(null);
         }
       } else {
         console.log('No vocabulary available for challenge creation');
+        setTodaysChallenge(null);
       }
     } catch (error) {
       console.error('Error in generateOrGetTodaysChallenge:', error);
+      setTodaysChallenge(null);
     } finally {
       setLoading(false);
     }
