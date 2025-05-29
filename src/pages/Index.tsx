@@ -85,7 +85,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-kawaii-lavender to-kawaii-sky p-4">
         <div className="max-w-4xl mx-auto">
-          <DailyVocabularyChallenge onComplete={() => setCurrentMode('home')} />
+          <DailyVocabularyChallenge onBack={() => setCurrentMode('home')} />
         </div>
       </div>
     );
